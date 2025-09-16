@@ -20,7 +20,7 @@ function Rankings() {
       setLoading(true);
       setError("");
       try {
-        const response = await axios.get("http://localhost:5000/api/rankings");
+        const response = await axios.get("https://khelinfo-bkd.onrender.com/api/rankings");
         const data = response.data.data;
 
         // Filter by gender and type
