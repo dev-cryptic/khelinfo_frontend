@@ -58,8 +58,25 @@ function Home() {
       const firstInning = match.runs[0];
       const secondInning = match.runs[1];
 
-      runsNeeded = firstInning.score - secondInning.score;
-      oversRemaining = (match.type === "T20" ? 20 : 50) - parseFloat(secondInning.overs);
+if ((match.type === "T20" || match.type === "ODI") && match.runs?.length > 1) {
+  const firstInning = match.runs[0];
+  const secondInning = match.runs[1];
+
+  runsNeeded = firstInning.score - secondInning.score;
+
+  // Total balls in the innings
+  const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
+
+  // Convert overs to balls properly
+  const oversParts = secondInning.overs.toString().split(".");
+  const overs = parseInt(oversParts[0], 10);
+  const balls = oversParts[1] ? parseInt(oversParts[1], 10) : 0;
+
+  const ballsBowled = overs * 6 + balls;
+  oversRemaining = totalBalls - ballsBowled; // remaining balls as integer
+}
+
+
     }
   }
 

@@ -37,7 +37,7 @@ const MatchCard = ({
   } else if (innings === 1) {
     displayCenter = "First innings";
   } else if (innings === 2 && runsNeeded != null && oversRemaining != null) {
-    displayCenter = `${runsNeeded} runs needed from ${oversRemaining} overs`;
+    displayCenter = `${runsNeeded} runs needed from ${oversRemaining} balls`;
   } else {
     displayCenter = status || "Match not started";
   }
