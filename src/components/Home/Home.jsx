@@ -6,16 +6,14 @@ import MatchCard from './MatchCard';
 function Home() {
   const [blogs, setBlogs] = useState([]);
   const [cricketMatches, setCricketMatches] = useState([]);
-  const navigate = useNavigate();
-
-  // === Fetch Teams ===
   const [teams, setTeams] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTeams = async () => {
       try {
         const response = await axios.get("https://khelinfo-bkd.onrender.com/api/teams");
-        setTeams(response.data.data); // array of {id, name, code, image_path}
+        setTeams(response.data.data);
       } catch (err) {
         console.error("Error fetching teams:", err);
       }
@@ -23,18 +21,16 @@ function Home() {
     fetchTeams();
   }, []);
 
-  // Helpers
   const getTeamName = (id) => {
-    const team = teams.find((t) => t.id === id);
+    const team = teams.find(t => t.id === id);
     return team ? team.name : `Team ${id}`;
   };
 
   const getTeamLogo = (id) => {
-    const team = teams.find((t) => t.id === id);
+    const team = teams.find(t => t.id === id);
     return team?.image_path || "https://via.placeholder.com/50";
   };
 
-  // === Fetch Cricket Matches ===
   useEffect(() => {
     if (!teams.length) return;
 
@@ -43,35 +39,57 @@ function Home() {
         const response = await axios.get("https://khelinfo-bkd.onrender.com/api/livescores");
         const data = response.data.data || [];
 
-        const lastSixMatches = data.slice(0, 6).map((match) => {
-          const formatTeamScore = (teamId) => {
-            const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
-            if (!teamRuns.length) return "0-0 (0.0)";
+        const matches = data.map(match => {
+  const formatTeamScore = (teamId) => {
+    const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
+    if (!teamRuns.length) return "0-0 (0.0)";
+    return teamRuns.map(r => `${r.score}-${r.wickets} (${r.overs})`).join("\n");
+  };
 
-            const scores = [];
-            teamRuns.forEach((r) => {
-              scores.push(`${r.score}-${r.wickets} (${r.overs})`);
-              if (r.inning_finished) {
-                scores.push("Inning Break"); // Add break after each finished inning
-              }
-            });
-            return scores.join('\n'); // new line for each score/break
-          };
+  let runsNeeded = null;
+  let oversRemaining = null;
+  let innings = 1;
 
-          return {
-            id: match.id,
-            title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
-            teamA: getTeamName(match.localteam_id),
-            teamALogo: getTeamLogo(match.localteam_id),
-            teamAScore: formatTeamScore(match.localteam_id),
-            teamB: getTeamName(match.visitorteam_id),
-            teamBLogo: getTeamLogo(match.visitorteam_id),
-            teamBScore: formatTeamScore(match.visitorteam_id),
-            status: match.note || match.status || "Match not started",
-          };
+  if (match.runs?.length > 0) {
+    innings = match.runs.length > 1 ? 2 : 1;
+
+    // Only calculate target for ODI/T20
+    if ((match.type === "T20" || match.type === "ODI") && innings === 2) {
+      const firstInning = match.runs[0];
+      const secondInning = match.runs[1];
+
+      runsNeeded = firstInning.score - secondInning.score;
+      oversRemaining = (match.type === "T20" ? 20 : 50) - parseFloat(secondInning.overs);
+    }
+  }
+
+  return {
+    id: match.id,
+    title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
+    teamA: getTeamName(match.localteam_id),
+    teamALogo: getTeamLogo(match.localteam_id),
+    teamAScore: formatTeamScore(match.localteam_id),
+    teamB: getTeamName(match.visitorteam_id),
+    teamBLogo: getTeamLogo(match.visitorteam_id),
+    teamBScore: formatTeamScore(match.visitorteam_id),
+    status: match.note || match.status || "Match not started",
+    innings,
+    runsNeeded,
+    oversRemaining,
+    live: match.live,
+  };
+});
+
+
+
+        // Sort: live matches first, then upcoming, then finished
+        const sortedMatches = matches.sort((a, b) => {
+          if (a.live && !b.live) return -1;
+          if (!a.live && b.live) return 1;
+          return new Date(b.title.split(" • ")[1]) - new Date(a.title.split(" • ")[1]);
         });
 
-        setCricketMatches(lastSixMatches);
+        setCricketMatches(sortedMatches.slice(0, 6));
       } catch (error) {
         console.error("Error fetching cricket matches:", error);
       }
@@ -82,7 +100,7 @@ function Home() {
     return () => clearInterval(interval);
   }, [teams]);
 
-  // === Fetch Blogs ===
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -117,57 +135,52 @@ function Home() {
 
   return (
     <>
-      {/* === Section Builder === */}
-      {[
-        {
-          title: 'Cricket',
-          to: '/cricket',
-          gradient: 'bg-gradient-to-r from-yellow-50 to-red-50',
-          badge: { label: 'Cricket', color: 'bg-yellow-100 text-yellow-800' },
-          cards: cricketMatches,
-        },
-        {
-          title: 'Football',
-          to: '/football',
-          gradient: 'bg-gradient-to-r from-blue-50 to-green-50',
-          badge: { label: 'Football', color: 'bg-blue-100 text-blue-800' },
-          cards: [...Array(6)].map((_, i) => ({
-            id: 200 + i,
-            title: 'Final • UEFA Champions League 2025',
-            teamA: 'Barcelona',
-            teamALogo:
-              'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
-            teamAScore: '2',
-            teamB: 'Chelsea',
-            teamBLogo:
-              'https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/800px-Chelsea_FC.svg.png',
-            teamBScore: '1',
-            status: 'Barcelona won the UEFA Champions League',
-          })),
-        },
-        {
-          title: 'Kabaddi',
-          to: '/kabaddi',
-          gradient: 'bg-gradient-to-r from-purple-50 to-pink-50',
-          badge: { label: 'Kabaddi', color: 'bg-purple-100 text-purple-800' },
-          cards: [...Array(6)].map((_, i) => ({
-            id: 300 + i,
-            title: `Match ${12 + i} • Pro Kabaddi League 2025`,
-            teamA: 'Patna Pirates',
-            teamALogo:
-              'https://upload.wikimedia.org/wikipedia/en/8/80/Patna_Pirates_logo.png',
-            teamAScore: `${30 + i * 2} pts`,
-            teamB: 'U Mumba',
-            teamBLogo:
-              'https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/U_Mumba_logo.svg/1200px-U_Mumba_logo.svg.png',
-            teamBScore: `${28 + i} pts`,
-            status:
-              i === 2
-                ? 'Match ongoing – 2 minutes left'
-                : `Patna Pirates won by ${2 + i} points`,
-          })),
-        },
-      ].map((section, index) => (
+      {[{
+        title: 'Cricket',
+        to: '/cricket',
+        gradient: 'bg-gradient-to-r from-yellow-50 to-red-50',
+        badge: { label: 'Cricket', color: 'bg-yellow-100 text-yellow-800' },
+        cards: cricketMatches,
+      }, {
+        title: 'Football',
+        to: '/football',
+        gradient: 'bg-gradient-to-r from-blue-50 to-green-50',
+        badge: { label: 'Football', color: 'bg-blue-100 text-blue-800' },
+        cards: [...Array(6)].map((_, i) => ({
+          id: 200 + i,
+          title: 'Final • UEFA Champions League 2025',
+          teamA: 'Barcelona',
+          teamALogo:
+            'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+          teamAScore: '2',
+          teamB: 'Chelsea',
+          teamBLogo:
+            'https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/800px-Chelsea_FC.svg.png',
+          teamBScore: '1',
+          status: 'Barcelona won the UEFA Champions League',
+        })),
+      }, {
+        title: 'Kabaddi',
+        to: '/kabaddi',
+        gradient: 'bg-gradient-to-r from-purple-50 to-pink-50',
+        badge: { label: 'Kabaddi', color: 'bg-purple-100 text-purple-800' },
+        cards: [...Array(6)].map((_, i) => ({
+          id: 300 + i,
+          title: `Match ${12 + i} • Pro Kabaddi League 2025`,
+          teamA: 'Patna Pirates',
+          teamALogo:
+            'https://upload.wikimedia.org/wikipedia/en/8/80/Patna_Pirates_logo.png',
+          teamAScore: `${30 + i * 2} pts`,
+          teamB: 'U Mumba',
+          teamBLogo:
+            'https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/U_Mumba_logo.svg/1200px-U_Mumba_logo.svg.png',
+          teamBScore: `${28 + i} pts`,
+          status:
+            i === 2
+              ? 'Match ongoing – 2 minutes left'
+              : `Patna Pirates won by ${2 + i} points`,
+        })),
+      }].map((section, index) => (
         <section key={index} className="text-gray-600 body-font mb-5">
           <div className="container px-3 sm:px-5 py-0 mt-7 mx-auto">
             <div className="flex justify-between items-center mb-4 sm:mb-8">
@@ -192,18 +205,10 @@ function Home() {
               {section.cards.map(card => (
                 <MatchCard
                   key={card.id}
-                  title={card.title}
+                  {...card}
                   badge={section.badge}
-                  teamA={card.teamA}
-                  teamALogo={card.teamALogo}
-                  teamAScore={card.teamAScore}
-                  teamB={card.teamB}
-                  teamBLogo={card.teamBLogo}
-                  teamBScore={card.teamBScore}
-                  status={card.status}
                   gradient={section.gradient}
                   onClick={() => navigate(`/match/${card.id}`)}
-                  className="whitespace-pre-line" // render multi-line scores
                 />
               ))}
             </div>
@@ -211,7 +216,6 @@ function Home() {
         </section>
       ))}
 
-      {/* === Blogs Section === */}
       <section className="py-10 px-4 sm:px-8 lg:px-16 bg-white">
         <h2 className="text-2xl font-semibold text-center text-black mb-8">Trendy Sports Buzz</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
