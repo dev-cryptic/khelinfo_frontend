@@ -28,12 +28,14 @@ function Rankings() {
           r => r.gender === gender && r.type === formatMap[format]
         );
 
-        const currentData = filtered?.team?.map(t => ({
-          name: t.name,
-          points: t.ranking?.points || 0,
-          position: t.ranking?.position || 0,
-          image: t.image_path || "",
-        })) || [];
+        const currentData =
+          filtered?.team?.map(t => ({
+            name: t.name,
+            points: t.ranking?.points || 0,
+            rating: t.ranking?.rating || 0, // 👈 added rating
+            position: t.ranking?.position || 0,
+            image: t.image_path || "",
+          })) || [];
 
         setRankings(currentData.sort((a, b) => a.position - b.position));
       } catch (err) {
@@ -88,6 +90,7 @@ function Rankings() {
             <tr className="border-b">
               <th className="p-2">Rank</th>
               <th className="p-2">Team</th>
+              <th className="p-2 text-right">Rating</th> {/* 👈 new column */}
               <th className="p-2 text-right">Points</th>
             </tr>
           </thead>
@@ -99,6 +102,7 @@ function Rankings() {
                   {team.image && <img src={team.image} alt={team.name} className="w-6 h-6" />}
                   {team.name}
                 </td>
+                <td className="p-2 text-right">{team.rating}</td> {/* 👈 new rating cell */}
                 <td className="p-2 text-right">{team.points}</td>
               </tr>
             ))}

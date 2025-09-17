@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import MatchCard from '../MatchCard';
+import MatchCard from './MatchCard';
 
 function Home() {
   const [blogs, setBlogs] = useState([]);
@@ -23,22 +23,20 @@ function Home() {
     fetchTeams();
   }, []);
 
-  // Helper: Get team name by ID
+  // Helpers
   const getTeamName = (id) => {
     const team = teams.find((t) => t.id === id);
     return team ? team.name : `Team ${id}`;
   };
 
-  // Helper: Get team logo by ID
   const getTeamLogo = (id) => {
     const team = teams.find((t) => t.id === id);
     return team?.image_path || "https://via.placeholder.com/50";
   };
 
   // === Fetch Cricket Matches ===
-  // === Fetch Cricket Matches ===
   useEffect(() => {
-    if (!teams.length) return; // wait until teams are loaded
+    if (!teams.length) return;
 
     const fetchCricket = async () => {
       try {
@@ -46,63 +44,30 @@ function Home() {
         const data = response.data.data || [];
 
         const lastSixMatches = data.slice(0, 6).map((match) => {
-          const teamAScore =
-            match.batting?.filter((b) => b.team_id === match.localteam_id)
-              .reduce((sum, b) => sum + (b.score || 0), 0) || 0;
+          const formatTeamScore = (teamId) => {
+            const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
+            if (!teamRuns.length) return "0-0 (0.0)";
 
-          const teamAWickets =
-            match.batting?.filter(
-              (b) => b.team_id === match.localteam_id && b.wicket_id
-            ).length || 0;
-          const teamAOvers = (
-            (match.batting
-              ?.filter((b) => b.team_id === match.localteam_id)
-              .reduce((sum, b) => sum + (b.ball || 0), 0) || 0) / 6
-          ).toFixed(1);
-
-          const teamBScore =
-            match.batting?.filter((b) => b.team_id === match.visitorteam_id)
-              .reduce((sum, b) => sum + (b.score || 0), 0) || 0;
-
-          const teamBWickets =
-            match.batting?.filter(
-              (b) => b.team_id === match.visitorteam_id && b.wicket_id
-            ).length || 0;
-          const teamBOvers = (
-            (match.batting
-              ?.filter((b) => b.team_id === match.visitorteam_id)
-              .reduce((sum, b) => sum + (b.ball || 0), 0) || 0) / 6
-          ).toFixed(1);
-
-          const targetScore =
-            match.rpc_target ||
-            match.runs?.find((r) => r.inning === 1)?.score ||
-            null;
-          const remainingRuns = targetScore ? targetScore - teamBScore : null;
-          const remainingBalls = match.total_overs_played
-            ? match.total_overs_played * 6 -
-            match.batting
-              ?.filter((b) => b.team_id === match.visitorteam_id)
-              .reduce((sum, b) => sum + (b.ball || 0), 0)
-            : null;
-
-          const statusText =
-            match.status === "LIVE"
-              ? match.note || "Live"
-              : targetScore && remainingRuns !== null && remainingBalls !== null
-                ? `Target: ${targetScore}`
-                : match.note || match.status || "Match not started";
+            const scores = [];
+            teamRuns.forEach((r) => {
+              scores.push(`${r.score}-${r.wickets} (${r.overs})`);
+              if (r.inning_finished) {
+                scores.push("Inning Break"); // Add break after each finished inning
+              }
+            });
+            return scores.join('\n'); // new line for each score/break
+          };
 
           return {
             id: match.id,
             title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
             teamA: getTeamName(match.localteam_id),
             teamALogo: getTeamLogo(match.localteam_id),
-            teamAScore: `${teamAScore}-${teamAWickets} (${teamAOvers})`,
+            teamAScore: formatTeamScore(match.localteam_id),
             teamB: getTeamName(match.visitorteam_id),
             teamBLogo: getTeamLogo(match.visitorteam_id),
-            teamBScore: `${teamBScore}-${teamBWickets} (${teamBOvers})`,
-            status: statusText,
+            teamBScore: formatTeamScore(match.visitorteam_id),
+            status: match.note || match.status || "Match not started",
           };
         });
 
@@ -112,20 +77,12 @@ function Home() {
       }
     };
 
-    // Fetch immediately
     fetchCricket();
-
-    // Refresh every 10 seconds
     const interval = setInterval(fetchCricket, 10000);
-
-    // Cleanup on unmount
     return () => clearInterval(interval);
-
   }, [teams]);
 
-
-
-  // Fetch Blogs
+  // === Fetch Blogs ===
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -166,7 +123,7 @@ function Home() {
           title: 'Cricket',
           to: '/cricket',
           gradient: 'bg-gradient-to-r from-yellow-50 to-red-50',
-          badge: { label: 'T20', color: 'bg-yellow-100 text-yellow-800' },
+          badge: { label: 'Cricket', color: 'bg-yellow-100 text-yellow-800' },
           cards: cricketMatches,
         },
         {
@@ -243,13 +200,10 @@ function Home() {
                   teamB={card.teamB}
                   teamBLogo={card.teamBLogo}
                   teamBScore={card.teamBScore}
-                  status={
-                    card.remainingRuns !== null && card.remainingBalls !== null
-                      ? `${card.status.replace(/\n/g, '<br />')}`
-                      : card.status
-                  }
+                  status={card.status}
                   gradient={section.gradient}
                   onClick={() => navigate(`/match/${card.id}`)}
+                  className="whitespace-pre-line" // render multi-line scores
                 />
               ))}
             </div>
