@@ -1,86 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Fixtures = () => {
-  const [gender, setGender] = useState('all');
-  const [category, setCategory] = useState('All');
+  const [gender, setGender] = useState("all");
+  const [category, setCategory] = useState("All");
+  const [fixtures, setFixtures] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [leagues, setLeagues] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const genders = ['all', 'men', 'women'];
-  const categories = ['All', 'International', 'Domestic & Others', 'T20 Leagues'];
+  const genders = ["all", "men", "women"];
+  const categories = ["All", "International", "Domestic & Others", "T20 Leagues"];
 
-  const sampleFixtures = [
-    {
-      id: 1,
-      gender: 'men',
-      category: 'International',
-      tournament: 'ICC World Cup 2025',
-      teamA: 'India',
-      teamB: 'Australia',
-      date: '2025-07-20',
-      time: '14:30 IST',
-      venue: 'Wankhede Stadium, Mumbai'
-    },
-    {
-      id: 2,
-      gender: 'women',
-      category: 'T20 Leagues',
-      tournament: 'Womens T20 Challenge',
-      teamA: 'Velocity',
-      teamB: 'Trailblazers',
-      date: '2025-07-22',
-      time: '19:00 IST',
-      venue: 'Eden Gardens, Kolkata'
-    },
-    {
-      id: 3,
-      gender: 'men',
-      category: 'Domestic & Others',
-      tournament: 'Ranji Trophy',
-      teamA: 'Mumbai',
-      teamB: 'Delhi',
-      date: '2025-07-25',
-      time: '10:00 IST',
-      venue: 'Brabourne Stadium, Mumbai'
-    },
-    {
-      id: 4,
-      gender: 'women',
-      category: 'International',
-      tournament: 'Womens ODI Series',
-      teamA: 'India Women',
-      teamB: 'England Women',
-      date: '2025-07-28',
-      time: '13:00 IST',
-      venue: 'MA Chidambaram Stadium, Chennai'
-    },
-    {
-      id: 5,
-      gender: 'men',
-      category: 'T20 Leagues',
-      tournament: 'IPL 2025',
-      teamA: 'Chennai Super Kings',
-      teamB: 'Royal Challengers Bangalore',
-      date: '2025-07-30',
-      time: '19:30 IST',
-      venue: 'M. Chinnaswamy Stadium, Bangalore'
-    },
-    {
-      id: 6,
-      gender: 'women',
-      category: 'Domestic & Others',
-      tournament: 'Senior Womens One Day League',
-      teamA: 'Railways Women',
-      teamB: 'Bengal Women',
-      date: '2025-08-02',
-      time: '09:30 IST',
-      venue: 'Sawai Mansingh Stadium, Jaipur'
-    }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [fixturesRes, teamsRes, leaguesRes] = await axios.all([
+          axios.get("https://khelinfo-bkd.onrender.com/api/fixtures"),
+          axios.get("https://khelinfo-bkd.onrender.com/api/teams"),
+          axios.get("https://khelinfo-bkd.onrender.com/api/leagues"),
+        ]);
 
-  const filteredFixtures = sampleFixtures.filter((match) => {
-    const matchGender = gender === 'all' || match.gender === gender;
-    const matchCategory = category === 'All' || match.category === category;
-    return matchGender && matchCategory;
-  });
+        const fixturesData = fixturesRes.data.data || [];
+        const teamsData = teamsRes.data.data || [];
+        const leaguesData = leaguesRes.data.data || [];
+
+        // Merge team names and logos
+        const mergedFixtures = fixturesData.map((match) => {
+          const localTeam = teamsData.find((t) => t.id === match.localteam_id);
+          const visitorTeam = teamsData.find((t) => t.id === match.visitorteam_id);
+          const league = leaguesData.find((l) => l.id === match.league_id);
+
+          return {
+            ...match,
+            localteam_name: localTeam?.name || "Team A",
+            localteam_logo: localTeam?.logo_path || "/placeholder-team.png",
+            visitorteam_name: visitorTeam?.name || "Team B",
+            visitorteam_logo: visitorTeam?.logo_path || "/placeholder-team.png",
+            league_name: league?.name || "League",
+          };
+        });
+
+        // Filter for current/upcoming/live matches only
+        const currentFixtures = mergedFixtures.filter(
+          (m) => m.status.toLowerCase() !== "finished"
+        );
+
+        setFixtures(currentFixtures);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-6">
@@ -92,8 +67,8 @@ const Fixtures = () => {
             onClick={() => setGender(type)}
             className={`px-3 py-1 rounded-full text-sm md:text-base transition-all duration-200 ${
               gender === type
-                ? 'bg-blue-800 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? "bg-blue-800 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -109,8 +84,8 @@ const Fixtures = () => {
             onClick={() => setCategory(item)}
             className={`text-sm md:text-base px-3 py-1 rounded-full transition-all duration-200 ${
               category === item
-                ? 'bg-blue-800 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? "bg-blue-800 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             {item}
@@ -118,32 +93,53 @@ const Fixtures = () => {
         ))}
       </div>
 
-      {/* Fixture content header */}
-      <div className="text-center text-sm md:text-base text-gray-600 mb-4">
-        <strong>{gender === 'all' ? 'All' : gender === 'men' ? 'Men' : 'Women'}</strong> fixtures
-        for <strong>{category}</strong>
-      </div>
-
-      {/* Fixture list */}
+      {/* Fixtures List */}
       <div className="space-y-4">
-        {filteredFixtures.length > 0 ? (
-          filteredFixtures.map((match) => (
+        {loading ? (
+          <div className="text-center text-gray-500">Loading fixtures...</div>
+        ) : fixtures.length > 0 ? (
+          fixtures.map((match) => (
             <div
               key={match.id}
               className="bg-white border rounded-lg p-4 shadow-sm text-left text-sm md:text-base"
             >
-              <div className="font-bold text-blue-900 mb-1">{match.tournament}</div>
-              <div className="font-semibold">
-                {match.teamA} vs {match.teamB}
+              <div className="font-bold text-blue-900 mb-1">{match.league_name}</div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={match.localteam_logo}
+                    alt={match.localteam_name}
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span>{match.localteam_name}</span>
+                </div>
+                <span className="font-semibold">vs</span>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={match.visitorteam_logo}
+                    alt={match.visitorteam_name}
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span>{match.visitorteam_name}</span>
+                </div>
               </div>
-              <div className="text-gray-600">
-                {match.date} | {match.time}
+              <div className="text-gray-600 mt-1">
+                {new Date(match.starting_at).toLocaleDateString()} |{" "}
+                {new Date(match.starting_at).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
-              <div className="text-gray-500">{match.venue}</div>
+              {match.status !== "Finished" && (
+                <div className="text-gray-700 mt-1 font-medium">{match.status}</div>
+              )}
+              {match.status === "Finished" && match.note && (
+                <div className="text-green-600 mt-1 font-medium">{match.note}</div>
+              )}
             </div>
           ))
         ) : (
-          <div className="text-center text-gray-500">No fixtures available.</div>
+          <div className="text-center text-gray-500">No current fixtures available.</div>
         )}
       </div>
     </div>

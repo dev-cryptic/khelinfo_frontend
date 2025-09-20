@@ -35,9 +35,9 @@ const MatchCard = ({
   if (normalizedStatus.includes("stump")) {
     displayCenter = status; // e.g., "Stumps - Day 3"
   } else if (innings === 1) {
-    displayCenter = "First innings";
+    displayCenter = status;
   } else if (innings === 2 && runsNeeded != null && oversRemaining != null) {
-    displayCenter = `${runsNeeded} runs needed from ${oversRemaining} balls`;
+    displayCenter = ` ${runsNeeded} runs needed from ${oversRemaining} balls`;
   } else {
     displayCenter = status || "Match not started";
   }
@@ -101,7 +101,7 @@ const MatchCard = ({
         {isLive && (
           <p className="text-xs sm:text-sm font-semibold flex items-center gap-1 text-red-600">
             <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-            LIVE
+            Live
           </p>
         )}
 

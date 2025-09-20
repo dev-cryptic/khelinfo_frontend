@@ -40,66 +40,54 @@ function Home() {
         const data = response.data.data || [];
 
         const matches = data.map(match => {
-  const formatTeamScore = (teamId) => {
-    const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
-    if (!teamRuns.length) return "0-0 (0.0)";
-    return teamRuns.map(r => `${r.score}-${r.wickets} (${r.overs})`).join("\n");
-  };
+          const formatTeamScore = (teamId) => {
+            const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
+            if (!teamRuns.length) return "0-0 (0.0)";
 
-  let runsNeeded = null;
-  let oversRemaining = null;
-  let innings = 1;
+            // ✅ Always take last entry (latest innings only)
+            const latest = teamRuns[teamRuns.length - 1];
+            return `${latest.score}-${latest.wickets} (${latest.overs})`;
+          };
 
-  if (match.runs?.length > 0) {
-    innings = match.runs.length > 1 ? 2 : 1;
+          let runsNeeded = null;
+          let oversRemaining = null;
+          let innings = match.runs?.length > 1 ? 2 : 1;
 
-    // Only calculate target for ODI/T20
-    if ((match.type === "T20" || match.type === "ODI") && innings === 2) {
-      const firstInning = match.runs[0];
-      const secondInning = match.runs[1];
+          if ((match.type === "T20" || match.type === "ODI") && innings === 2) {
+            const firstInning = match.runs[0];
+            const secondInning = match.runs[1];
 
-if ((match.type === "T20" || match.type === "ODI") && match.runs?.length > 1) {
-  const firstInning = match.runs[0];
-  const secondInning = match.runs[1];
+            runsNeeded = firstInning.score - secondInning.score;
 
-  runsNeeded = firstInning.score - secondInning.score;
+            const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
 
-  // Total balls in the innings
-  const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
+            // ✅ Correct overs to balls conversion
+            const oversParts = secondInning.overs.toString().split(".");
+            const overs = parseInt(oversParts[0], 10);
+            const balls = oversParts[1] ? parseInt(oversParts[1], 10) : 0;
 
-  // Convert overs to balls properly
-  const oversParts = secondInning.overs.toString().split(".");
-  const overs = parseInt(oversParts[0], 10);
-  const balls = oversParts[1] ? parseInt(oversParts[1], 10) : 0;
+            const ballsBowled = overs * 6 + balls;
+            oversRemaining = totalBalls - ballsBowled;
+          }
 
-  const ballsBowled = overs * 6 + balls;
-  oversRemaining = totalBalls - ballsBowled; // remaining balls as integer
-}
+          return {
+            id: match.id,
+            title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
+            teamA: getTeamName(match.localteam_id),
+            teamALogo: getTeamLogo(match.localteam_id),
+            teamAScore: formatTeamScore(match.localteam_id),
+            teamB: getTeamName(match.visitorteam_id),
+            teamBLogo: getTeamLogo(match.visitorteam_id),
+            teamBScore: formatTeamScore(match.visitorteam_id),
+            status: match.note || match.status || "Match not started",
+            innings,
+            runsNeeded,
+            oversRemaining,
+            live: match.live,
+          };
+        });
 
-
-    }
-  }
-
-  return {
-    id: match.id,
-    title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
-    teamA: getTeamName(match.localteam_id),
-    teamALogo: getTeamLogo(match.localteam_id),
-    teamAScore: formatTeamScore(match.localteam_id),
-    teamB: getTeamName(match.visitorteam_id),
-    teamBLogo: getTeamLogo(match.visitorteam_id),
-    teamBScore: formatTeamScore(match.visitorteam_id),
-    status: match.note || match.status || "Match not started",
-    innings,
-    runsNeeded,
-    oversRemaining,
-    live: match.live,
-  };
-});
-
-
-
-        // Sort: live matches first, then upcoming, then finished
+        // Sort live matches first
         const sortedMatches = matches.sort((a, b) => {
           if (a.live && !b.live) return -1;
           if (!a.live && b.live) return 1;
@@ -116,7 +104,6 @@ if ((match.type === "T20" || match.type === "ODI") && match.runs?.length > 1) {
     const interval = setInterval(fetchCricket, 10000);
     return () => clearInterval(interval);
   }, [teams]);
-
 
   useEffect(() => {
     const fetchBlogs = async () => {
