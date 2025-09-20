@@ -2,12 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import MatchCard from './MatchCard';
+import { useTranslation } from 'react-i18next'; // 1. Import the hook
 
 function Home() {
   const [blogs, setBlogs] = useState([]);
   const [cricketMatches, setCricketMatches] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [leagues, setLeagues] = useState([]);
   const navigate = useNavigate();
+  const { t } = useTranslation(); // 2. Call the hook
+
+  useEffect(() => {
+    const fetchLeagues = async () => {
+      try {
+        const response = await axios.get("https://khelinfo-bkd.onrender.com/api/leagues");
+        setLeagues(response.data.data);
+      } catch (err) {
+        console.error("Error fetching leagues:", err);
+      }
+    };
+    fetchLeagues();
+  }, []);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -30,9 +45,15 @@ function Home() {
     const team = teams.find(t => t.id === id);
     return team?.image_path || "https://via.placeholder.com/50";
   };
+  
+  const getLeagueName = (id) => {
+    if (!leagues.length) return `League ${id}`;
+    const league = leagues.find(l => l.id === id);
+    return league ? league.name : `League ${id}`;
+  };
 
   useEffect(() => {
-    if (!teams.length) return;
+    if (!teams.length || !leagues.length) return;
 
     const fetchCricket = async () => {
       try {
@@ -41,58 +62,53 @@ function Home() {
 
         const matches = data.map(match => {
           const formatTeamScore = (teamId) => {
-            const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
-            if (!teamRuns.length) return "0-0 (0.0)";
-            
-
-            // ✅ Always take last entry (latest innings only)
-            const latest = teamRuns[teamRuns.length - 1];
-            return `${latest.score}-${latest.wickets} (${latest.overs})`;
+            const teamRun = match.runs?.find(r => r.team_id === teamId);
+            if (!teamRun) return "0-0 (0.0)";
+            return `${teamRun.score}-${teamRun.wickets} (${teamRun.overs})`;
           };
-
-          let runsNeeded = null;
-          let oversRemaining = null;
-          let innings = match.runs?.length > 1 ? 2 : 1;
-
-          if ((match.type === "T20" || match.type === "ODI") && innings === 2) {
-            const firstInning = match.runs[0];
-            const secondInning = match.runs[1];
-
-            runsNeeded = firstInning.score - secondInning.score;
-
-            const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
-
-            // ✅ Correct overs to balls conversion
-            const oversParts = secondInning.overs.toString().split(".");
-            const overs = parseInt(oversParts[0], 10);
-            const balls = oversParts[1] ? parseInt(oversParts[1], 10) : 0;
-
-            const ballsBowled = overs * 6 + balls;
-            oversRemaining = totalBalls - ballsBowled;
-          }
 
           return {
             id: match.id,
-            title: `${match.round || match.type} • ${match.starting_at.split("T")[0]}`,
+            title: match.round,
+            leagueName: getLeagueName(match.league_id),
             teamA: getTeamName(match.localteam_id),
             teamALogo: getTeamLogo(match.localteam_id),
             teamAScore: formatTeamScore(match.localteam_id),
             teamB: getTeamName(match.visitorteam_id),
             teamBLogo: getTeamLogo(match.visitorteam_id),
             teamBScore: formatTeamScore(match.visitorteam_id),
-            status: match.note || match.status || "Match not started",
-            innings,
-            runsNeeded,
-            oversRemaining,
+            status: match.note || match.status,
+            innings: match.runs?.length || 0,
             live: match.live,
+            type: match.type,
+            starting_at: match.starting_at,
           };
         });
 
-        // Sort live matches first
+        const getStatusPriority = (match) => {
+          const status = match.status?.toLowerCase() || "";
+          if (match.live && !status.includes('stump')) return 1;
+          if (status.includes('upcoming')) return 2;
+          if (status.includes('finish') || status.includes('ended') || status.includes('result')) return 3;
+          return 4;
+        };
+
         const sortedMatches = matches.sort((a, b) => {
-          if (a.live && !b.live) return -1;
-          if (!a.live && b.live) return 1;
-          return new Date(b.title.split(" • ")[1]) - new Date(a.title.split(" • ")[1]);
+          const priorityA = getStatusPriority(a);
+          const priorityB = getStatusPriority(b);
+
+          if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+          }
+
+          const dateA = new Date(a.starting_at);
+          const dateB = new Date(b.starting_at);
+
+          if (priorityA === 2) {
+            return dateA - dateB;
+          }
+          
+          return dateB - dateA;
         });
 
         setCricketMatches(sortedMatches.slice(0, 6));
@@ -104,7 +120,7 @@ function Home() {
     fetchCricket();
     const interval = setInterval(fetchCricket, 10000);
     return () => clearInterval(interval);
-  }, [teams]);
+  }, [teams, leagues]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -131,61 +147,56 @@ function Home() {
         console.error('Error fetching sports blogs:', error);
       }
     };
-
     fetchBlogs();
   }, []);
 
   const horizontalScrollContainer =
     'flex gap-4 overflow-x-auto pb-4 px-1 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]';
 
+  // 3. Use the t() function for your section data
+  const sections = [{
+    title: t('cricket'),
+    to: '/cricket',
+    gradient: 'bg-gradient-to-r from-yellow-50 to-red-50',
+    badge: { label: t('cricket'), color: 'bg-yellow-100 text-yellow-800' },
+    cards: cricketMatches,
+  }, {
+    title: t('football'),
+    to: '/football',
+    gradient: 'bg-gradient-to-r from-blue-50 to-green-50',
+    badge: { label: t('football'), color: 'bg-blue-100 text-blue-800' },
+    cards: [...Array(6)].map((_, i) => ({
+      id: 200 + i,
+      title: 'Final • UEFA Champions League 2025',
+      teamA: 'Barcelona',
+      teamALogo: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+      teamAScore: '2',
+      teamB: 'Chelsea',
+      teamBLogo: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/800px-Chelsea_FC.svg.png',
+      teamBScore: '1',
+      status: 'Barcelona won the UEFA Champions League',
+    })),
+  }, {
+    title: t('kabaddi'),
+    to: '/kabaddi',
+    gradient: 'bg-gradient-to-r from-purple-50 to-pink-50',
+    badge: { label: t('kabaddi'), color: 'bg-purple-100 text-purple-800' },
+    cards: [...Array(6)].map((_, i) => ({
+      id: 300 + i,
+      title: `Match ${12 + i} • Pro Kabaddi League 2025`,
+      teamA: 'Patna Pirates',
+      teamALogo: 'https://upload.wikimedia.org/wikipedia/en/8/80/Patna_Pirates_logo.png',
+      teamAScore: `${30 + i * 2} pts`,
+      teamB: 'U Mumba',
+      teamBLogo: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/U_Mumba_logo.svg/1200px-U_Mumba_logo.svg.png',
+      teamBScore: `${28 + i} pts`,
+      status: i === 2 ? 'Match ongoing – 2 minutes left' : `Patna Pirates won by ${2 + i} points`,
+    })),
+  }];
+
   return (
     <>
-      {[{
-        title: 'Cricket',
-        to: '/cricket',
-        gradient: 'bg-gradient-to-r from-yellow-50 to-red-50',
-        badge: { label: 'Cricket', color: 'bg-yellow-100 text-yellow-800' },
-        cards: cricketMatches,
-      }, {
-        title: 'Football',
-        to: '/football',
-        gradient: 'bg-gradient-to-r from-blue-50 to-green-50',
-        badge: { label: 'Football', color: 'bg-blue-100 text-blue-800' },
-        cards: [...Array(6)].map((_, i) => ({
-          id: 200 + i,
-          title: 'Final • UEFA Champions League 2025',
-          teamA: 'Barcelona',
-          teamALogo:
-            'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
-          teamAScore: '2',
-          teamB: 'Chelsea',
-          teamBLogo:
-            'https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/800px-Chelsea_FC.svg.png',
-          teamBScore: '1',
-          status: 'Barcelona won the UEFA Champions League',
-        })),
-      }, {
-        title: 'Kabaddi',
-        to: '/kabaddi',
-        gradient: 'bg-gradient-to-r from-purple-50 to-pink-50',
-        badge: { label: 'Kabaddi', color: 'bg-purple-100 text-purple-800' },
-        cards: [...Array(6)].map((_, i) => ({
-          id: 300 + i,
-          title: `Match ${12 + i} • Pro Kabaddi League 2025`,
-          teamA: 'Patna Pirates',
-          teamALogo:
-            'https://upload.wikimedia.org/wikipedia/en/8/80/Patna_Pirates_logo.png',
-          teamAScore: `${30 + i * 2} pts`,
-          teamB: 'U Mumba',
-          teamBLogo:
-            'https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/U_Mumba_logo.svg/1200px-U_Mumba_logo.svg.png',
-          teamBScore: `${28 + i} pts`,
-          status:
-            i === 2
-              ? 'Match ongoing – 2 minutes left'
-              : `Patna Pirates won by ${2 + i} points`,
-        })),
-      }].map((section, index) => (
+      {sections.map((section, index) => (
         <section key={index} className="text-gray-600 body-font mb-5">
           <div className="container px-3 sm:px-5 py-0 mt-7 mx-auto">
             <div className="flex justify-between items-center mb-4 sm:mb-8">
@@ -194,7 +205,7 @@ function Home() {
                 to={section.to}
                 className="inline-flex items-center gap-1 px-2 py-0.5 text-sm font-medium text-blue-900 hover:text-blue-700 transition-colors duration-200"
               >
-                More
+                {t('more')}
                 <svg
                   className="w-3.5 h-3.5"
                   fill="none"
@@ -211,7 +222,7 @@ function Home() {
                 <MatchCard
                   key={card.id}
                   {...card}
-                  badge={section.badge}
+                  badge={{...section.badge, label: card.type || section.badge.label}}
                   gradient={section.gradient}
                   onClick={() => navigate(`/match/${card.id}`)}
                 />
@@ -222,7 +233,7 @@ function Home() {
       ))}
 
       <section className="py-10 px-4 sm:px-8 lg:px-16 bg-white">
-        <h2 className="text-2xl font-semibold text-center text-black mb-8">Trendy Sports Buzz</h2>
+        <h2 className="text-2xl font-semibold text-center text-black mb-8">{t('trendy_sports_buzz')}</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {blogs.map((blog, index) => (
             <a
@@ -258,3 +269,4 @@ function Home() {
 }
 
 export default Home;
+

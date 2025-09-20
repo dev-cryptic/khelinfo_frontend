@@ -1,65 +1,70 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next'; // 1. Import hook
 
+// 2. Use keys for team names for translation
 const internationalTeams = [
-  "India", "Afghanistan", "Ireland", "Pakistan", "Australia", "Sri Lanka",
-  "Bangladesh", "England", "West Indies", "South Africa", "Zimbabwe", "New Zealand"
+  "india", "afghanistan", "ireland", "pakistan", "australia", "sri_lanka",
+  "bangladesh", "england", "west_indies", "south_africa", "zimbabwe", "new_zealand"
 ];
 
 const associateTeams = [
-  "Malaysia", "Nepal", "Germany", "Namibia", "Denmark", "Singapore",
-  "Papua New Guinea", "Kuwait", "Vanuatu", "Jersey", "Oman", "Fiji",
-  "Italy", "Botswana", "Belgium", "Uganda", "Canada", "United Arab Emirates",
-  "Hong Kong", "Kenya", "United States of America", "Scotland", "Netherlands",
-  "Bermuda", "Iran"
+  "malaysia", "nepal", "germany", "namibia", "denmark", "singapore",
+  "papua_new_guinea", "kuwait", "vanuatu", "jersey", "oman", "fiji",
+  "italy", "botswana", "belgium", "uganda", "canada", "united_arab_emirates",
+  "hong_kong", "kenya", "united_states", "scotland", "netherlands",
+  "bermuda", "iran"
 ];
 
 const domesticLeagues = [
-  "IPL (India)", "BBL (Australia)", "PSL (Pakistan)", "CPL (West Indies)",
-  "Vitality Blast (England)", "LPL (Sri Lanka)", "T20 Blast", "Super Smash (New Zealand)"
+  "ipl", "bbl", "psl", "cpl",
+  "vitality_blast", "lpl", "t20_blast", "super_smash"
 ];
 
 const womenTeams = [
-  "India Women", "Australia Women", "England Women", "South Africa Women", 
-  "New Zealand Women", "Pakistan Women", "Bangladesh Women", "Sri Lanka Women"
+  "india_women", "australia_women", "england_women", "south_africa_women", 
+  "new_zealand_women", "pakistan_women", "bangladesh_women", "sri_lanka_women"
 ];
 
 function Teams() {
+  const { t } = useTranslation(); // 3. Call hook
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Teams</h1>
+      {/* 4. Use t() function for all text */}
+      <h1 className="text-2xl font-bold mb-4">{t('teams')}</h1>
 
       <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">International Test Teams</h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {internationalTeams.map((team) => (
-            <li key={team} className="bg-gray-100 p-2 rounded">{team}</li>
+        <h2 className="text-xl font-semibold mb-2">{t('international_test_teams')}</h2>
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {internationalTeams.map((teamKey) => (
+            <li key={teamKey} className="bg-gray-100 p-2 rounded">{t(teamKey)}</li>
           ))}
         </ul>
       </section>
 
       <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Associate Teams</h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {associateTeams.map((team) => (
-            <li key={team} className="bg-gray-50 p-2 rounded">{team}</li>
+        <h2 className="text-xl font-semibold mb-2">{t('associate_teams')}</h2>
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {associateTeams.map((teamKey) => (
+            <li key={teamKey} className="bg-gray-50 p-2 rounded">{t(teamKey)}</li>
           ))}
         </ul>
       </section>
 
       <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Domestic Leagues</h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {domesticLeagues.map((league) => (
-            <li key={league} className="bg-gray-50 p-2 rounded">{league}</li>
+        <h2 className="text-xl font-semibold mb-2">{t('domestic_leagues')}</h2>
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {domesticLeagues.map((leagueKey) => (
+            <li key={leagueKey} className="bg-gray-50 p-2 rounded">{t(leagueKey)}</li>
           ))}
         </ul>
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-2">Women Teams</h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {womenTeams.map((team) => (
-            <li key={team} className="bg-gray-100 p-2 rounded">{team}</li>
+        <h2 className="text-xl font-semibold mb-2">{t('women_teams')}</h2>
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {womenTeams.map((teamKey) => (
+            <li key={teamKey} className="bg-gray-100 p-2 rounded">{t(teamKey)}</li>
           ))}
         </ul>
       </section>

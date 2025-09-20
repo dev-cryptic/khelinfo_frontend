@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-
-
+import { useTranslation } from "react-i18next"; // 1. Import hook
 
 function Footer() {
+  const { t } = useTranslation(); // 2. Call hook
+
   return (
     <footer className="text-gray-600 shadow-sm body-font text-[10px] sm:text-xs">
       {/* Main Section */}
@@ -16,42 +17,43 @@ function Footer() {
               className="h-5 sm:h-6 object-contain"
             />
           </a>
-          <p className="leading-tight">All-in-one sports platform with real-time updates.</p>
+          {/* 3. Use t() function for text */}
+          <p className="leading-tight">{t('platform_description')}</p>
         </div>
 
         {/* Quick Links */}
         <div className="w-[45%] sm:w-[22%] md:w-[18%] min-w-[100px]">
-          <h2 className="font-semibold text-gray-900 mb-1">Quick Links</h2>
+          <h2 className="font-semibold text-gray-900 mb-1">{t('quick_links')}</h2>
           <ul className="list-none space-y-1">
-            <li><a className="hover:text-gray-800">ICC Rankings</a></li>
+            <li><a className="hover:text-gray-800">{t('icc_rankings')}</a></li>
           </ul>
         </div>
 
         {/* Company */}
         <div className="w-[45%] sm:w-[22%] md:w-[18%] min-w-[100px]">
-          <h2 className="font-semibold text-gray-900 mb-1">Company</h2>
+          <h2 className="font-semibold text-gray-900 mb-1">{t('company')}</h2>
           <ul className="list-none space-y-1 grid">
-            <Link to='/careers' className="hover:text-gray-800">Careers </Link>
-            <Link to='/advertise' className="hover:text-gray-800">Advertise</Link>
-            <Link to='privacy' className="hover:text-gray-800">Privacy</Link>
-            <Link to='terms' className="hover:text-gray-800">Terms</Link>
+            <Link to='/careers' className="hover:text-gray-800">{t('careers')}</Link>
+            <Link to='/advertise' className="hover:text-gray-800">{t('advertise')}</Link>
+            <Link to='/privacy' className="hover:text-gray-800">{t('privacy')}</Link>
+            <Link to='/terms' className="hover:text-gray-800">{t('terms')}</Link>
           </ul>
         </div>
 
         {/* Sports */}
         <div className="w-[45%] sm:w-[22%] md:w-[18%] min-w-[100px]">
-          <h2 className="font-semibold text-gray-900 mb-1">Sports</h2>
+          <h2 className="font-semibold text-gray-900 mb-1">{t('sports')}</h2>
           <ul className="list-none space-y-1">
-            <li><Link to='cricket' className="hover:text-gray-800">Cricket</Link></li>
-            <li><Link to="/football" className="hover:text-gray-800">Football</Link></li>
-            <li><Link to="/kabaddi" className="hover:text-gray-800">Kabaddi</Link></li>
-            <li><Link to="/basketball" className="hover:text-gray-800">Basketball</Link></li>
+            <li><Link to='/cricket' className="hover:text-gray-800">{t('cricket')}</Link></li>
+            <li><Link to="/football" className="hover:text-gray-800">{t('football')}</Link></li>
+            <li><Link to="/kabaddi" className="hover:text-gray-800">{t('kabaddi')}</Link></li>
+            <li><Link to="/basketball" className="hover:text-gray-800">{t('basketball')}</Link></li>
           </ul>
         </div>
 
         {/* Sites */}
         <div className="w-[45%] sm:w-[22%] md:w-[18%] min-w-[100px]">
-          <h2 className="font-semibold text-gray-900 mb-1">Sites</h2>
+          <h2 className="font-semibold text-gray-900 mb-1">{t('sites')}</h2>
           <ul className="list-none space-y-1">
             <li>
               <a
@@ -60,7 +62,7 @@ function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-gray-800"
               >
-                KHELiNFO
+                {t('khelinfo')}
               </a>
             </li>
           </ul>
@@ -102,3 +104,4 @@ function Footer() {
 }
 
 export default Footer;
+

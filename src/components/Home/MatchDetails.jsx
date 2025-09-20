@@ -1,7 +1,7 @@
-// MatchDetails.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useTranslation } from "react-i18next"; // 1. Import hook
 
 // Spinner Component
 const Spinner = () => (
@@ -18,168 +18,141 @@ const Card = ({ children, className = "" }) => (
 );
 
 // Batting Table
-const BattingTable = ({ data, getPlayer, getDismissalInfo }) => (
-  <div className="overflow-x-auto">
-    <table className="w-full text-sm text-left text-gray-600">
-      <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-        <tr>
-          <th className="px-4 py-3">Batter</th>
-          <th className="px-4 py-3 text-right">R</th>
-          <th className="px-4 py-3 text-right">B</th>
-          <th className="px-4 py-3 text-right">4s</th>
-          <th className="px-4 py-3 text-right">6s</th>
-          <th className="px-4 py-3 text-right">SR</th>
-          <th className="px-4 py-3">Dismissal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data?.map((bat) => {
-          const player = getPlayer(bat.player_id);
-          const strikeRate =
-            bat.ball > 0 ? ((parseInt(bat.score) || 0) / parseInt(bat.ball)) * 100 : 0;
-          return (
-            <tr key={bat.id} className="bg-white border-b hover:bg-gray-50">
-              <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center gap-2">
-                <img
-                  src={player?.image_path || "https://via.placeholder.com/30"}
-                  alt={player?.fullname || "Player"}
-                  className="w-6 h-6 rounded-full"
-                />
-                {player?.fullname || `Player ${bat.player_id}`}
-              </td>
-              <td className="px-4 py-3 text-right font-semibold">{bat.score}</td>
-              <td className="px-4 py-3 text-right">{bat.ball}</td>
-              <td className="px-4 py-3 text-right">{bat.four_x}</td>
-              <td className="px-4 py-3 text-right">{bat.six_x}</td>
-              <td className="px-4 py-3 text-right">{strikeRate.toFixed(1)}</td>
-              <td className="px-4 py-3 text-xs">{getDismissalInfo(bat)}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
-);
+const BattingTable = ({ data, getPlayer, getDismissalInfo }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left text-gray-600">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th className="px-4 py-3">{t('batter')}</th>
+            <th className="px-4 py-3 text-right">{t('R')}</th>
+            <th className="px-4 py-3 text-right">{t('B')}</th>
+            <th className="px-4 py-3 text-right">{t('4s')}</th>
+            <th className="px-4 py-3 text-right">{t('6s')}</th>
+            <th className="px-4 py-3 text-right">{t('SR')}</th>
+            <th className="px-4 py-3">{t('dismissal')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.map((bat) => {
+            const player = getPlayer(bat.player_id);
+            const strikeRate = bat.ball > 0 ? ((parseInt(bat.score) || 0) / parseInt(bat.ball)) * 100 : 0;
+            return (
+              <tr key={bat.id} className="bg-white border-b hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center gap-2">
+                  <img src={player?.image_path || "https://via.placeholder.com/30"} alt={player?.fullname || "Player"} className="w-6 h-6 rounded-full" />
+                  {player?.fullname || `Player ${bat.player_id}`}
+                </td>
+                <td className="px-4 py-3 text-right font-semibold">{bat.score}</td>
+                <td className="px-4 py-3 text-right">{bat.ball}</td>
+                <td className="px-4 py-3 text-right">{bat.four_x}</td>
+                <td className="px-4 py-3 text-right">{bat.six_x}</td>
+                <td className="px-4 py-3 text-right">{strikeRate.toFixed(1)}</td>
+                <td className="px-4 py-3 text-xs">{getDismissalInfo(bat)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 // Bowling Table
-const BowlingTable = ({ data, getPlayer }) => (
-  <div className="overflow-x-auto">
-    <table className="w-full text-sm text-left text-gray-600">
-      <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-        <tr>
-          <th className="px-4 py-3">Bowler</th>
-          <th className="px-4 py-3 text-right">O</th>
-          <th className="px-4 py-3 text-right">M</th>
-          <th className="px-4 py-3 text-right">R</th>
-          <th className="px-4 py-3 text-right">W</th>
-          <th className="px-4 py-3 text-right">Econ</th>
-          <th className="px-4 py-3 text-right">WD</th>
-          <th className="px-4 py-3 text-right">NB</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data?.map((bowl) => {
-          const player = getPlayer(bowl.player_id);
-          return (
-            <tr key={bowl.id} className="bg-white border-b hover:bg-gray-50">
-              <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center gap-2">
-                <img
-                  src={player?.image_path || "https://via.placeholder.com/30"}
-                  alt={player?.fullname || "Player"}
-                  className="w-6 h-6 rounded-full"
-                />
-                {player?.fullname || `Player ${bowl.player_id}`}
-              </td>
-              <td className="px-4 py-3 text-right">{bowl.overs}</td>
-              <td className="px-4 py-3 text-right">{bowl.medians}</td>
-              <td className="px-4 py-3 text-right">{bowl.runs}</td>
-              <td className="px-4 py-3 text-right font-semibold">{bowl.wickets}</td>
-              <td className="px-4 py-3 text-right">{bowl.rate}</td>
-              <td className="px-4 py-3 text-right">{bowl.wide}</td>
-              <td className="px-4 py-3 text-right">{bowl.noball}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
-);
+const BowlingTable = ({ data, getPlayer }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-600">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th className="px-4 py-3">{t('bowler')}</th>
+                        <th className="px-4 py-3 text-right">{t('O')}</th>
+                        <th className="px-4 py-3 text-right">{t('M')}</th>
+                        <th className="px-4 py-3 text-right">{t('R')}</th>
+                        <th className="px-4 py-3 text-right">{t('W')}</th>
+                        <th className="px-4 py-3 text-right">{t('Econ')}</th>
+                        <th className="px-4 py-3 text-right">{t('WD')}</th>
+                        <th className="px-4 py-3 text-right">{t('NB')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data?.map((bowl) => {
+                        const player = getPlayer(bowl.player_id);
+                        return (
+                            <tr key={bowl.id} className="bg-white border-b hover:bg-gray-50">
+                                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap flex items-center gap-2">
+                                    <img src={player?.image_path || "https://via.placeholder.com/30"} alt={player?.fullname || "Player"} className="w-6 h-6 rounded-full" />
+                                    {player?.fullname || `Player ${bowl.player_id}`}
+                                </td>
+                                <td className="px-4 py-3 text-right">{bowl.overs}</td>
+                                <td className="px-4 py-3 text-right">{bowl.medians}</td>
+                                <td className="px-4 py-3 text-right">{bowl.runs}</td>
+                                <td className="px-4 py-3 text-right font-semibold">{bowl.wickets}</td>
+                                <td className="px-4 py-3 text-right">{bowl.rate}</td>
+                                <td className="px-4 py-3 text-right">{bowl.wide}</td>
+                                <td className="px-4 py-3 text-right">{bowl.noball}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
 
 // Match Info Component
 const MatchInfo = ({ match, getTeamName, getOfficialName }) => {
-  const renderPlayers = (playersList) =>
-    playersList?.map((p, idx) => (
-      <li key={idx} className="flex justify-between text-sm py-1 border-b border-gray-100">
-        <span>{p.name}</span>
-        <span className="text-gray-500">{p.role}</span>
-      </li>
+    const { t } = useTranslation();
+    const renderPlayers = (playersList) => playersList?.map((p, idx) => (
+        <li key={idx} className="flex justify-between text-sm py-1 border-b border-gray-100">
+            <span>{p.name}</span>
+            <span className="text-gray-500">{p.role}</span>
+        </li>
     ));
 
-  return (
-    <div className="space-y-4">
-      <ul className="text-sm text-gray-700 space-y-1">
-        <li>
-          <span className="font-semibold">Venue:</span> {match.venue_id || "N/A"}
-        </li>
-        <li>
-          <span className="font-semibold">Toss:</span> {getTeamName(match.toss_won_team_id)} elected {match.elected}
-        </li>
-        <li>
-          <span className="font-semibold">1st Umpire:</span> {getOfficialName(match.first_umpire_id) || "N/A"}
-        </li>
-        <li>
-          <span className="font-semibold">2nd Umpire:</span> {getOfficialName(match.second_umpire_id) || "N/A"}
-        </li>
-        <li>
-          <span className="font-semibold">TV Umpire:</span> {getOfficialName(match.tv_umpire_id) || "N/A"}
-        </li>
-        <li>
-          <span className="font-semibold">Referee:</span> {getOfficialName(match.referee_id) || "N/A"}
-        </li>
-      </ul>
-
-      {match.squads?.map((teamSquad, idx) => (
-        <div key={idx} className="space-y-2">
-          <h3 className="text-md font-semibold text-gray-800">{getTeamName(teamSquad.team_id)}</h3>
-          {teamSquad.playing_xi?.length > 0 && (
-            <div>
-              <p className="font-semibold text-gray-600 mb-1">Playing XI</p>
-              <ul className="border rounded-md divide-y divide-gray-100">{renderPlayers(teamSquad.playing_xi)}</ul>
-            </div>
-          )}
-          {teamSquad.bench?.length > 0 && (
-            <div>
-              <p className="font-semibold text-gray-600 mb-1 mt-2">Bench</p>
-              <ul className="border rounded-md divide-y divide-gray-100">{renderPlayers(teamSquad.bench)}</ul>
-            </div>
-          )}
-          {teamSquad.support_staff?.length > 0 && (
-            <div>
-              <p className="font-semibold text-gray-600 mb-1 mt-2">Support Staff</p>
-              <ul className="border rounded-md divide-y divide-gray-100">{renderPlayers(teamSquad.support_staff)}</ul>
-            </div>
-          )}
+    return (
+        <div className="space-y-4">
+            <ul className="text-sm text-gray-700 space-y-1">
+                <li><span className="font-semibold">{t('venue')}:</span> {match.venue?.name || "N/A"}, {match.venue?.city}</li>
+                <li><span className="font-semibold">{t('toss')}:</span> {getTeamName(match.toss_won_team_id)} {t('elected_to')} {match.elected}</li>
+                <li><span className="font-semibold">{t('first_umpire')}:</span> {getOfficialName(match.first_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">{t('second_umpire')}:</span> {getOfficialName(match.second_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">{t('tv_umpire')}:</span> {getOfficialName(match.tv_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">{t('referee')}:</span> {getOfficialName(match.referee_id) || "N/A"}</li>
+            </ul>
+            {match.squads?.map((teamSquad, idx) => (
+                <div key={idx} className="space-y-2">
+                    <h3 className="text-md font-semibold text-gray-800">{getTeamName(teamSquad.team_id)}</h3>
+                    {teamSquad.playing_xi?.length > 0 && (
+                        <div>
+                            <p className="font-semibold text-gray-600 mb-1">{t('playing_xi')}</p>
+                            <ul className="border rounded-md divide-y divide-gray-100 p-2">{renderPlayers(teamSquad.playing_xi)}</ul>
+                        </div>
+                    )}
+                </div>
+            ))}
         </div>
-      ))}
-    </div>
-  );
+    );
 };
 
 // Main Component
 export default function MatchDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [match, setMatch] = useState(null);
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
   const [leagues, setLeagues] = useState([]);
   const [officials, setOfficials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeInning, setActiveInning] = useState(0);
   const [activeTab, setActiveTab] = useState("scorecard");
+  const { t } = useTranslation(); // 2. Call hook
 
-  // Fetch static data
+  const [activeInning, setActiveInning] = useState(0);
+  const [userSelectedInning, setUserSelectedInning] = useState(false);
+
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
@@ -194,13 +167,12 @@ export default function MatchDetails() {
         setLeagues(leaguesRes.data.data);
         setOfficials(officialsRes.data.data);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch static data:", err);
       }
     };
     fetchStaticData();
   }, []);
 
-  // Fetch match data with interval
   useEffect(() => {
     const fetchMatch = async () => {
       try {
@@ -208,7 +180,7 @@ export default function MatchDetails() {
         const foundMatch = res.data.data.find((m) => m.id === parseInt(id));
         if (foundMatch) setMatch(foundMatch);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch match data:", err);
       } finally {
         setLoading(false);
       }
@@ -217,203 +189,185 @@ export default function MatchDetails() {
     const interval = setInterval(fetchMatch, 5000);
     return () => clearInterval(interval);
   }, [id]);
+  
+  const getTeamName = (id) => teams.find(t => t.id === id)?.name || `Team ${id}`;
+
+  const innings = useMemo(() => {
+    if (!match || !teams.length) return [];
+    const battingByTeam = (match.batting || []).reduce((acc, bat) => {
+        (acc[bat.team_id] = acc[bat.team_id] || []).push(bat);
+        return acc;
+    }, {});
+    const teamIds = [match.localteam_id, match.visitorteam_id];
+    return teamIds
+        .map((teamId) => ({
+            battingTeam: teamId,
+            bowlingTeam: teamIds.find((id) => id !== teamId),
+            title: t('innings_title', { teamName: getTeamName(teamId) }),
+        }))
+        .filter(
+            (inn) =>
+            (battingByTeam[inn.battingTeam]?.length > 0) ||
+            (Array.isArray(match.runs) && match.runs.some((r) => r.team_id === inn.battingTeam))
+        );
+}, [match, teams, t]);
+
+  useEffect(() => {
+    if (innings.length > 1 && !userSelectedInning) {
+      setActiveInning(1);
+    }
+  }, [innings.length, userSelectedInning]);
+
+  const handleInningChange = (index) => {
+    setUserSelectedInning(true);
+    setActiveInning(index);
+  };
 
   if (loading) return <Spinner />;
-  if (!match) return <p className="text-center mt-20 text-gray-600">Match Not Found</p>;
+  if (!match) return <p className="text-center mt-20 text-gray-600">{t('match_not_found')}</p>;
 
   const getTeam = (id) => teams.find((t) => t.id === id);
-  const getTeamName = (id) => getTeam(id)?.name || id;
   const getTeamLogo = (id) => getTeam(id)?.image_path || "https://via.placeholder.com/50";
   const getPlayer = (id) => players.find((p) => p.id === id);
-  const getLeagueName = (id) => leagues.find((l) => l.id === id)?.name || id;
-  const getOfficialName = (id) => officials.find((o) => o.id === id)?.fullname || id;
+  const getLeagueName = (id) => leagues.find((l) => l.id === id)?.name || `League ${id}`;
+  const getOfficialName = (id) => officials.find((o) => o.id === id)?.fullname || `Official ${id}`;
+  
   const getDismissalInfo = (b) => {
-    if (b.runout_by_id) return `run out (${getPlayer(b.runout_by_id)?.fullname})`;
-    if (b.catch_stump_player_id && b.bowling_player_id)
-      return `c ${getPlayer(b.catch_stump_player_id)?.fullname} b ${getPlayer(b.bowling_player_id)?.fullname}`;
-    if (b.bowling_player_id) return `b ${getPlayer(b.bowling_player_id)?.fullname}`;
-    return <span className="font-bold text-green-600">not out</span>;
+    if (b.runout_by_id) return t('run_out', { fielder: getPlayer(b.runout_by_id)?.fullname || '' });
+    if (b.catch_stump_player_id && b.bowling_player_id) return t('caught_bowled', { catcher: getPlayer(b.catch_stump_player_id)?.fullname || '', bowler: getPlayer(b.bowling_player_id)?.fullname || '' });
+    if (b.bowling_player_id) return t('bowled', { bowler: getPlayer(b.bowling_player_id)?.fullname || '' });
+    return <span className="font-bold text-green-600">{t('not_out')}</span>;
   };
 
-  // Determine if match started
-  const matchStarted = () => {
-    if (Array.isArray(match.runs) && match.runs.length > 0) return true;
-    if (Array.isArray(match.batting) && match.batting.length > 0) return true;
-    if (match.status?.toLowerCase().includes("innings") || match.status?.toLowerCase().includes("live")) return true;
-    return false;
-  };
-
-  if (!matchStarted())
-    return (
-      <div className="flex flex-col justify-center items-center h-screen text-gray-600">
-        <p className="text-xl font-semibold">Match hasn’t started yet</p>
-        <p className="mt-2 text-gray-400">Scorecard will appear once the match starts.</p>
-      </div>
-    );
-
-  // Scorecard logic
-  const battingByTeam = (match.batting || []).reduce((acc, bat) => {
-    (acc[bat.team_id] = acc[bat.team_id] || []).push(bat);
-    return acc;
-  }, {});
-  const bowlingByTeam = (match.bowling || []).reduce((acc, bowl) => {
-    (acc[bowl.team_id] = acc[bowl.team_id] || []).push(bowl);
-    return acc;
-  }, {});
-
-  const teamIds = [match.localteam_id, match.visitorteam_id];
-  const innings = teamIds
-    .map((teamId) => ({
-      battingTeam: teamId,
-      bowlingTeam: teamIds.find((id) => id !== teamId),
-      title: `${getTeamName(teamId)} Innings`,
-    }))
-    .filter(
-      (inn) =>
-        (battingByTeam[inn.battingTeam]?.length > 0) ||
-        (Array.isArray(match.runs) && match.runs.some((r) => r.team_id === inn.battingTeam))
-    );
-
+  const battingByTeam = (match.batting || []).reduce((acc, bat) => { (acc[bat.team_id] = acc[bat.team_id] || []).push(bat); return acc; }, {});
+  const bowlingByTeam = (match.bowling || []).reduce((acc, bowl) => { (acc[bowl.team_id] = acc[bowl.team_id] || []).push(bowl); return acc; }, {});
+  
   const getInningsStats = (teamId) => {
-    if (Array.isArray(match.runs) && match.runs.length) {
-      const teamRunsEntries = match.runs.filter((r) => r.team_id === teamId);
-      if (teamRunsEntries.length > 0) {
-        const last = teamRunsEntries[teamRunsEntries.length - 1];
-        const totalRuns = Number(last.score) || 0;
-        const totalWickets = Number(last.wickets) || 0;
-        const overs = last.overs ?? "0.0";
-        return { totalRuns, totalWickets, overs };
+    if (Array.isArray(match.runs)) {
+      const teamRuns = match.runs.filter(r => r.team_id === teamId).pop();
+      if (teamRuns) {
+        return {
+          totalRuns: Number(teamRuns.score) || 0,
+          totalWickets: Number(teamRuns.wickets) || 0,
+          overs: teamRuns.overs?.toFixed(1) || "0.0"
+        };
       }
     }
+    
     const bats = battingByTeam[teamId] || [];
-    const totalRuns = bats.reduce((acc, b) => acc + (Number(b.score) || 0), 0);
-    const totalWickets = bats.filter((b) => b.bowling_player_id || b.catch_stump_player_id || b.runout_by_id).length;
-    const oppId = teamIds.find((tid) => tid !== teamId);
+    const totalRuns = bats.reduce((sum, b) => sum + (Number(b.score) || 0), 0);
+    const totalWickets = bats.filter(b => b.bowling_player_id || b.runout_by_id).length;
+
+    const oppId = teamId === match.localteam_id ? match.visitorteam_id : match.localteam_id;
     const oppBowling = bowlingByTeam[oppId] || [];
-    let totalBalls = 0;
-    oppBowling.forEach((bow) => {
-      const oversStr = String(bow.overs || "0");
-      const parts = oversStr.split(".");
-      const o = parseInt(parts[0], 10) || 0;
-      const b = parts[1] ? parseInt(parts[1], 10) || 0 : 0;
-      totalBalls += o * 6 + b;
-    });
+    const totalBalls = oppBowling.reduce((sum, b) => sum + ((Math.floor(b.overs) * 6) + (b.overs % 1) * 10), 0);
     const overs = `${Math.floor(totalBalls / 6)}.${totalBalls % 6}`;
+
     return { totalRuns, totalWickets, overs };
   };
 
   const oversToBalls = (oversStr) => {
     if (!oversStr) return 0;
-    const parts = String(oversStr).split(".");
-    const o = parseInt(parts[0], 10) || 0;
-    const b = parts[1] ? parseInt(parts[1], 10) || 0 : 0;
+    const [o, b] = String(oversStr).split(".").map(s => parseInt(s, 10) || 0);
     return o * 6 + b;
   };
-
+  
   const computeRunsNeededInfo = () => {
-    if (Array.isArray(match.runs) && match.runs.length >= 2) {
-      const first = match.runs[0];
-      const second = match.runs[1];
-      const firstScore = Number(first.score) || 0;
-      const secondScore = Number(second.score) || 0;
-      const runsNeeded = firstScore - secondScore;
-      const ballsBowled = oversToBalls(second.overs);
-      const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
-      const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
-      const reqRR = ballsRemaining > 0 ? (runsNeeded / ballsRemaining) * 6 : null;
-      return { runsNeeded, ballsRemaining, reqRR };
-    }
-    if (innings.length === 2) {
-      const firstStats = getInningsStats(innings[0].battingTeam);
-      const secondStats = getInningsStats(innings[1].battingTeam);
-      const runsNeeded = firstStats.totalRuns - secondStats.totalRuns;
-      const ballsBowled = oversToBalls(secondStats.overs);
-      const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
-      const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
-      const reqRR = ballsRemaining > 0 ? (runsNeeded / ballsRemaining) * 6 : null;
-      return { runsNeeded, ballsRemaining, reqRR };
-    }
-    return { runsNeeded: null, ballsRemaining: null, reqRR: null };
+    if (innings.length < 2) return { runsNeeded: null, ballsRemaining: null, reqRR: null };
+    
+    const firstStats = getInningsStats(innings[0].battingTeam);
+    const secondStats = getInningsStats(innings[1].battingTeam);
+    
+    const runsNeeded = firstStats.totalRuns + 1 - secondStats.totalRuns;
+    const ballsBowled = oversToBalls(secondStats.overs);
+    const totalBalls = (match.type?.includes("T20") ? 20 : 50) * 6;
+    const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
+    const reqRR = ballsRemaining > 0 && runsNeeded > 0 ? (runsNeeded / ballsRemaining) * 6 : 0;
+    
+    return { runsNeeded, ballsRemaining, reqRR };
   };
 
-  const activeInningData = innings[activeInning] || innings[0] || { battingTeam: match.localteam_id, bowlingTeam: match.visitorteam_id, title: `${getTeamName(match.localteam_id)} Innings` };
+  const activeInningData = innings[activeInning];
+  if (!activeInningData) return <Spinner />;
+
   const battingData = battingByTeam[activeInningData.battingTeam] || [];
   const bowlingData = bowlingByTeam[activeInningData.bowlingTeam] || [];
   const stats = getInningsStats(activeInningData.battingTeam);
-  const totalRuns = stats.totalRuns;
-  const totalWickets = stats.totalWickets;
-  const overs = stats.overs;
+  const { totalRuns, totalWickets, overs } = stats;
   const runsNeededInfo = computeRunsNeededInfo();
+  const isMatchFinished = match.note && match.note.toLowerCase().includes('won');
+
+  const renderScoreSummary = () => {
+    const ballsBowled = oversToBalls(overs);
+    const crr = ballsBowled > 0 ? (totalRuns / ballsBowled) * 6 : 0;
+
+    if (activeInning === 1 && !isMatchFinished && runsNeededInfo.runsNeeded > 0) {
+      const { runsNeeded, ballsRemaining, reqRR } = runsNeededInfo;
+      return <p className="text-sm text-gray-500">{t('chase_summary', { runs: runsNeeded, balls: ballsRemaining, crr: crr.toFixed(2), reqRR: reqRR.toFixed(2) })}</p>;
+    }
+    
+    return <p className="text-sm text-gray-500">{t('crr_summary', { crr: crr.toFixed(2) })}</p>;
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-6">
-        <Card className="p-4 text-center">
-          <h2 className="text-xl font-bold text-gray-800">{getLeagueName(match.league_id)}</h2>
-          <p className="mt-2 text-gray-600">{match.status}</p>
-          <div className="mt-4 flex justify-center items-center gap-4">
-            <div className="flex items-center gap-2">
-              <img src={getTeamLogo(match.localteam_id)} alt="Local Team" className="w-8 h-8" />
-              <span className="font-semibold text-gray-800">{getTeamName(match.localteam_id)}</span>
-            </div>
-            <span className="font-bold text-gray-800">vs</span>
-            <div className="flex items-center gap-2">
-              <img src={getTeamLogo(match.visitorteam_id)} alt="Visitor Team" className="w-8 h-8" />
-              <span className="font-semibold text-gray-800">{getTeamName(match.visitorteam_id)}</span>
-            </div>
-          </div>
+        <Card className="p-6">
+          <p className="text-sm font-semibold text-blue-600">{match.round || match.type}</p>
+          <h1 className="text-3xl font-bold text-gray-800 mt-1">
+            {getTeamName(match.localteam_id)} {t('vs')} {getTeamName(match.visitorteam_id)}
+          </h1>
+          <p className="text-md text-gray-500 mt-2">{getLeagueName(match.league_id)}</p>
+          <p className="mt-4 text-lg font-semibold text-red-600">{match.note || match.status}</p>
         </Card>
 
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setActiveTab("scorecard")}
-            className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
-          >
-            Scorecard
-          </button>
-          <button
-            onClick={() => setActiveTab("matchinfo")}
-            className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
-          >
-            Match Info
-          </button>
+        <div className="flex gap-2">
+          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("scorecard")}>{t('scorecard')}</button>
+          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("matchinfo")}>{t('match_info')}</button>
         </div>
 
         {activeTab === "scorecard" && (
-          <Card className="p-4 space-y-4">
-            <div className="flex gap-2 mb-2">
-              {innings.map((inn, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveInning(idx)}
-                  className={`px-3 py-1 rounded-md font-semibold ${activeInning === idx ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-                >
-                  {inn.title}
-                </button>
-              ))}
-            </div>
-            <div className="text-gray-700 mb-2">
-              <p>
-                <span className="font-semibold">{getTeamName(activeInningData.battingTeam)}:</span> {totalRuns}/{totalWickets} ({overs} overs)
-              </p>
-              {runsNeededInfo.runsNeeded !== null && (
-                <p className="text-gray-500 text-sm">
-                  {runsNeededInfo.runsNeeded} runs needed from {runsNeededInfo.ballsRemaining} balls
-                  {runsNeededInfo.reqRR !== null && ` (Req. RR: ${runsNeededInfo.reqRR.toFixed(2)})`}
-                </p>
-              )}
-            </div>
-            <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
-            <BowlingTable data={bowlingData} getPlayer={getPlayer} />
-          </Card>
+          <div className="space-y-6">
+            {innings.length > 0 && (
+              <div className="flex gap-2 p-1 bg-gray-200 rounded-lg">
+                {innings.map((inn, index) => (
+                  <button key={index} className={`w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${activeInning === index ? "bg-white text-blue-600 shadow" : "bg-transparent text-gray-600 hover:bg-gray-300"}`} onClick={() => handleInningChange(index)}>{inn.title}</button>
+                ))}
+              </div>
+            )}
+
+            <Card>
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <img src={getTeamLogo(activeInningData.battingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
+                  <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold">{totalRuns}/{totalWickets} ({overs} ov)</p>
+                  {renderScoreSummary()}
+                </div>
+              </div>
+              <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
+            </Card>
+
+            <Card>
+              <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+                <img src={getTeamLogo(activeInningData.bowlingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
+                <h2 className="text-xl font-bold text-gray-800">{t('bowling_title', { teamName: getTeamName(activeInningData.bowlingTeam) })}</h2>
+              </div>
+              <BowlingTable data={bowlingData} getPlayer={getPlayer} />
+            </Card>
+          </div>
         )}
 
-        {activeTab === "matchinfo" && (
-          <Card className="p-4">
-            <MatchInfo match={match} getTeamName={getTeamName} getOfficialName={getOfficialName} />
-          </Card>
-        )}
+        {activeTab === "matchinfo" && <Card className="p-4"><MatchInfo match={match} getTeamName={getTeamName} getOfficialName={getOfficialName} /></Card>}
+
+        <div className="text-center pt-4">
+          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow hover:shadow-lg">{t('back_to_matches')}</button>
+        </div>
       </div>
     </div>
   );
 }
+
+
