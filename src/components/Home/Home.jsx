@@ -43,6 +43,7 @@ function Home() {
           const formatTeamScore = (teamId) => {
             const teamRuns = match.runs?.filter(r => r.team_id === teamId) || [];
             if (!teamRuns.length) return "0-0 (0.0)";
+            
 
             // ✅ Always take last entry (latest innings only)
             const latest = teamRuns[teamRuns.length - 1];

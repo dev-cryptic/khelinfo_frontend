@@ -1,3 +1,4 @@
+// MatchDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -178,6 +179,7 @@ export default function MatchDetails() {
   const [activeInning, setActiveInning] = useState(0);
   const [activeTab, setActiveTab] = useState("scorecard");
 
+  // Fetch static data
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
@@ -198,6 +200,7 @@ export default function MatchDetails() {
     fetchStaticData();
   }, []);
 
+  // Fetch match data with interval
   useEffect(() => {
     const fetchMatch = async () => {
       try {
@@ -232,6 +235,23 @@ export default function MatchDetails() {
     return <span className="font-bold text-green-600">not out</span>;
   };
 
+  // Determine if match started
+  const matchStarted = () => {
+    if (Array.isArray(match.runs) && match.runs.length > 0) return true;
+    if (Array.isArray(match.batting) && match.batting.length > 0) return true;
+    if (match.status?.toLowerCase().includes("innings") || match.status?.toLowerCase().includes("live")) return true;
+    return false;
+  };
+
+  if (!matchStarted())
+    return (
+      <div className="flex flex-col justify-center items-center h-screen text-gray-600">
+        <p className="text-xl font-semibold">Match hasn’t started yet</p>
+        <p className="mt-2 text-gray-400">Scorecard will appear once the match starts.</p>
+      </div>
+    );
+
+  // Scorecard logic
   const battingByTeam = (match.batting || []).reduce((acc, bat) => {
     (acc[bat.team_id] = acc[bat.team_id] || []).push(bat);
     return acc;
@@ -242,135 +262,157 @@ export default function MatchDetails() {
   }, {});
 
   const teamIds = [match.localteam_id, match.visitorteam_id];
-  const innings = teamIds.map((teamId) => ({
-    battingTeam: teamId,
-    bowlingTeam: teamIds.find((id) => id !== teamId),
-    title: `${getTeamName(teamId)} Innings`,
-  })).filter((inn) => battingByTeam[inn.battingTeam]?.length > 0);
+  const innings = teamIds
+    .map((teamId) => ({
+      battingTeam: teamId,
+      bowlingTeam: teamIds.find((id) => id !== teamId),
+      title: `${getTeamName(teamId)} Innings`,
+    }))
+    .filter(
+      (inn) =>
+        (battingByTeam[inn.battingTeam]?.length > 0) ||
+        (Array.isArray(match.runs) && match.runs.some((r) => r.team_id === inn.battingTeam))
+    );
 
-  const activeInningData = innings[activeInning] || innings[0];
+  const getInningsStats = (teamId) => {
+    if (Array.isArray(match.runs) && match.runs.length) {
+      const teamRunsEntries = match.runs.filter((r) => r.team_id === teamId);
+      if (teamRunsEntries.length > 0) {
+        const last = teamRunsEntries[teamRunsEntries.length - 1];
+        const totalRuns = Number(last.score) || 0;
+        const totalWickets = Number(last.wickets) || 0;
+        const overs = last.overs ?? "0.0";
+        return { totalRuns, totalWickets, overs };
+      }
+    }
+    const bats = battingByTeam[teamId] || [];
+    const totalRuns = bats.reduce((acc, b) => acc + (Number(b.score) || 0), 0);
+    const totalWickets = bats.filter((b) => b.bowling_player_id || b.catch_stump_player_id || b.runout_by_id).length;
+    const oppId = teamIds.find((tid) => tid !== teamId);
+    const oppBowling = bowlingByTeam[oppId] || [];
+    let totalBalls = 0;
+    oppBowling.forEach((bow) => {
+      const oversStr = String(bow.overs || "0");
+      const parts = oversStr.split(".");
+      const o = parseInt(parts[0], 10) || 0;
+      const b = parts[1] ? parseInt(parts[1], 10) || 0 : 0;
+      totalBalls += o * 6 + b;
+    });
+    const overs = `${Math.floor(totalBalls / 6)}.${totalBalls % 6}`;
+    return { totalRuns, totalWickets, overs };
+  };
+
+  const oversToBalls = (oversStr) => {
+    if (!oversStr) return 0;
+    const parts = String(oversStr).split(".");
+    const o = parseInt(parts[0], 10) || 0;
+    const b = parts[1] ? parseInt(parts[1], 10) || 0 : 0;
+    return o * 6 + b;
+  };
+
+  const computeRunsNeededInfo = () => {
+    if (Array.isArray(match.runs) && match.runs.length >= 2) {
+      const first = match.runs[0];
+      const second = match.runs[1];
+      const firstScore = Number(first.score) || 0;
+      const secondScore = Number(second.score) || 0;
+      const runsNeeded = firstScore - secondScore;
+      const ballsBowled = oversToBalls(second.overs);
+      const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
+      const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
+      const reqRR = ballsRemaining > 0 ? (runsNeeded / ballsRemaining) * 6 : null;
+      return { runsNeeded, ballsRemaining, reqRR };
+    }
+    if (innings.length === 2) {
+      const firstStats = getInningsStats(innings[0].battingTeam);
+      const secondStats = getInningsStats(innings[1].battingTeam);
+      const runsNeeded = firstStats.totalRuns - secondStats.totalRuns;
+      const ballsBowled = oversToBalls(secondStats.overs);
+      const totalBalls = (match.type === "T20" ? 20 : 50) * 6;
+      const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
+      const reqRR = ballsRemaining > 0 ? (runsNeeded / ballsRemaining) * 6 : null;
+      return { runsNeeded, ballsRemaining, reqRR };
+    }
+    return { runsNeeded: null, ballsRemaining: null, reqRR: null };
+  };
+
+  const activeInningData = innings[activeInning] || innings[0] || { battingTeam: match.localteam_id, bowlingTeam: match.visitorteam_id, title: `${getTeamName(match.localteam_id)} Innings` };
   const battingData = battingByTeam[activeInningData.battingTeam] || [];
   const bowlingData = bowlingByTeam[activeInningData.bowlingTeam] || [];
+  const stats = getInningsStats(activeInningData.battingTeam);
+  const totalRuns = stats.totalRuns;
+  const totalWickets = stats.totalWickets;
+  const overs = stats.overs;
+  const runsNeededInfo = computeRunsNeededInfo();
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-6">
-        {/* Header */}
-        <Card className="p-6">
-          <p className="text-sm font-semibold text-blue-600">{match.round || match.type}</p>
-          <h1 className="text-3xl font-bold text-gray-800 mt-1">
-            {getTeamName(match.localteam_id)} vs {getTeamName(match.visitorteam_id)}
-          </h1>
-          <p className="text-md text-gray-500 mt-2">{getLeagueName(match.league_id)}</p>
-          <p className="text-md text-green-600 mt-2">{getTeamName(match.toss_won_team_id)} elected {match.elected}</p>
-          <p className="mt-4 text-lg font-semibold text-red-600">{match.note || match.status}</p>
+        <Card className="p-4 text-center">
+          <h2 className="text-xl font-bold text-gray-800">{getLeagueName(match.league_id)}</h2>
+          <p className="mt-2 text-gray-600">{match.status}</p>
+          <div className="mt-4 flex justify-center items-center gap-4">
+            <div className="flex items-center gap-2">
+              <img src={getTeamLogo(match.localteam_id)} alt="Local Team" className="w-8 h-8" />
+              <span className="font-semibold text-gray-800">{getTeamName(match.localteam_id)}</span>
+            </div>
+            <span className="font-bold text-gray-800">vs</span>
+            <div className="flex items-center gap-2">
+              <img src={getTeamLogo(match.visitorteam_id)} alt="Visitor Team" className="w-8 h-8" />
+              <span className="font-semibold text-gray-800">{getTeamName(match.visitorteam_id)}</span>
+            </div>
+          </div>
         </Card>
 
-        {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex space-x-4">
           <button
-            className={`px-4 py-2 rounded-md font-semibold ${
-              activeTab === "scorecard" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
-            }`}
             onClick={() => setActiveTab("scorecard")}
+            className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
           >
             Scorecard
           </button>
           <button
-            className={`px-4 py-2 rounded-md font-semibold ${
-              activeTab === "matchinfo" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
-            }`}
             onClick={() => setActiveTab("matchinfo")}
+            className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`}
           >
             Match Info
           </button>
         </div>
 
-        {/* Tab Content */}
         {activeTab === "scorecard" && (
-          <div className="space-y-6">
-            {/* Innings Selector */}
-            <div className="flex gap-2 p-1 bg-gray-200 rounded-lg">
-              {innings.map((inn, index) => (
+          <Card className="p-4 space-y-4">
+            <div className="flex gap-2 mb-2">
+              {innings.map((inn, idx) => (
                 <button
-                  key={index}
-                  className={`w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${
-                    activeInning === index
-                      ? "bg-white text-blue-600 shadow"
-                      : "bg-transparent text-gray-600 hover:bg-gray-300"
-                  }`}
-                  onClick={() => setActiveInning(index)}
+                  key={idx}
+                  onClick={() => setActiveInning(idx)}
+                  className={`px-3 py-1 rounded-md font-semibold ${activeInning === idx ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
                 >
                   {inn.title}
                 </button>
               ))}
             </div>
-
-            {/* Score Summary */}
-            <Card>
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={getTeamLogo(activeInningData.battingTeam)}
-                    alt=""
-                    className="w-10 h-10 object-cover rounded-full"
-                  />
-                  <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
-                </div>
-                <div className="text-right">
-                  {(() => {
-                    const totalRuns = battingData.reduce((sum, b) => sum + (parseInt(b.score) || 0), 0);
-                    const totalWickets = battingData.filter(b => !b.not_out).length;
-                    const totalBalls = battingData.reduce((sum, b) => sum + (parseInt(b.ball) || 0), 0);
-                    const overs = `${Math.floor(totalBalls / 6)}.${totalBalls % 6}`;
-                    const currentRunRate = totalBalls > 0 ? (totalRuns / totalBalls) * 6 : 0;
-
-                    let requiredRunRate = null;
-                    let runsNeeded = null;
-                    if (innings.length === 2 && activeInning === 1) {
-                      const firstInningScore = battingByTeam[innings[0].battingTeam]?.reduce(
-                        (sum, b) => sum + (parseInt(b.score) || 0), 0
-                      ) || 0;
-                      runsNeeded = firstInningScore + 1 - totalRuns;
-                      const ballsRemaining = ((match.type === "T20" ? 20 : 50) * 6) - totalBalls;
-                      requiredRunRate = ballsRemaining > 0 ? (runsNeeded / ballsRemaining) * 6 : 0;
-                    }
-
-                    return (
-                      <>
-                        <p className="text-lg font-semibold">{totalRuns}/{totalWickets} ({overs} ov)</p>
-                        {activeInning === 0 && <p className="text-sm text-gray-500">CRR: {currentRunRate.toFixed(2)}</p>}
-                        {activeInning === 1 && requiredRunRate !== null && (
-                          <p className="text-sm text-gray-500">
-                            Runs Needed: {runsNeeded}, Req. RR: {requiredRunRate.toFixed(2)}, CRR: {currentRunRate.toFixed(2)}
-                          </p>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* Batting Table */}
-              <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
-            </Card>
-
-            {/* Bowling Table */}
-            <Card>
-              <div className="p-4 border-b border-gray-200 flex items-center gap-3">
-                <img
-                  src={getTeamLogo(activeInningData.bowlingTeam)}
-                  alt=""
-                  className="w-10 h-10 object-cover rounded-full"
-                />
-                <h2 className="text-xl font-bold text-gray-800">{getTeamName(activeInningData.bowlingTeam)} Bowling</h2>
-              </div>
-              <BowlingTable data={bowlingData} getPlayer={getPlayer} />
-            </Card>
-          </div>
+            <div className="text-gray-700 mb-2">
+              <p>
+                <span className="font-semibold">{getTeamName(activeInningData.battingTeam)}:</span> {totalRuns}/{totalWickets} ({overs} overs)
+              </p>
+              {runsNeededInfo.runsNeeded !== null && (
+                <p className="text-gray-500 text-sm">
+                  {runsNeededInfo.runsNeeded} runs needed from {runsNeededInfo.ballsRemaining} balls
+                  {runsNeededInfo.reqRR !== null && ` (Req. RR: ${runsNeededInfo.reqRR.toFixed(2)})`}
+                </p>
+              )}
+            </div>
+            <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
+            <BowlingTable data={bowlingData} getPlayer={getPlayer} />
+          </Card>
         )}
 
-        {activeTab === "matchinfo" && <MatchInfo match={match} getTeamName={getTeamName} getOfficialName={getOfficialName} />}
+        {activeTab === "matchinfo" && (
+          <Card className="p-4">
+            <MatchInfo match={match} getTeamName={getTeamName} getOfficialName={getOfficialName} />
+          </Card>
+        )}
       </div>
     </div>
   );
