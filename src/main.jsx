@@ -25,27 +25,21 @@ import MatchDetails from './components/Home/MatchDetails.jsx'
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<Layout/>}>
-      <Route path='home' element = {<Home/>} />
-      <Route
-      path="cricket" element= {<Cricket />}>
-
-        </Route>
-      
-       
-      <Route path='Football' element = {<Football />} />
-      <Route path='advertise' element = {<Advertise />} />
-      <Route path='terms' element = {<Terms />} />
-      <Route path='privacy' element = {<Privacy />} />
-      <Route path='careers' element = {<Careers />} />
-      <Route path="/Kabaddi" element={<Kabaddi />} />
-      <Route path="/rankings" element={<Rankings />} />
-      <Route path="/fixtures" element={<Fixtures />} />
-      <Route path="/series" element={<Series />} />
-      <Route path="/teams" element={<Teams />} />
-      <Route path="/match/:id" element={<MatchDetails />} />
-
-      
-    </Route>
+    <Route index element={<Home />} /> {/* Changed this line */}
+    <Route path="home" element={<Home />} />
+    <Route path="cricket" element={<Cricket />} />
+    <Route path='Football' element={<Football />} />
+    <Route path='advertise' element={<Advertise />} />
+    <Route path='terms' element={<Terms />} />
+    <Route path='privacy' element={<Privacy />} />
+    <Route path='careers' element={<Careers />} />
+    <Route path="/Kabaddi" element={<Kabaddi />} />
+    <Route path="/rankings" element={<Rankings />} />
+    <Route path="/fixtures" element={<Fixtures />} />
+    <Route path="/series" element={<Series />} />
+    <Route path="/teams" element={<Teams />} />
+    <Route path="/match/:id" element={<MatchDetails />} />
+</Route>
     
   )
 )
