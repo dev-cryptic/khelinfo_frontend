@@ -84,7 +84,7 @@ const MatchCard = ({
     }
   }
   else if (innings === 1 && isPotentiallyLive) {
-    displayCenter = `${firstInningsTeam} are batting`;
+    displayCenter = `${firstInningsTeam} is batting`;
   }
   else if (normalizedStatus.includes("stump")) {
     displayCenter = status;
