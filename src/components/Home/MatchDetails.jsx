@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useTranslation } from "react-i18next"; // 1. Import hook
 
 // Spinner Component
 const Spinner = () => (
   <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#2354a8]"></div>
   </div>
 );
 
@@ -19,19 +18,18 @@ const Card = ({ children, className = "" }) => (
 
 // Batting Table
 const BattingTable = ({ data, getPlayer, getDismissalInfo }) => {
-  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left text-gray-600">
         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
-            <th className="px-4 py-3">{t('batter')}</th>
-            <th className="px-4 py-3 text-right">{t('R')}</th>
-            <th className="px-4 py-3 text-right">{t('B')}</th>
-            <th className="px-4 py-3 text-right">{t('4s')}</th>
-            <th className="px-4 py-3 text-right">{t('6s')}</th>
-            <th className="px-4 py-3 text-right">{t('SR')}</th>
-            <th className="px-4 py-3">{t('dismissal')}</th>
+            <th className="px-4 py-3">Batter</th>
+            <th className="px-4 py-3 text-right">R</th>
+            <th className="px-4 py-3 text-right">B</th>
+            <th className="px-4 py-3 text-right">4s</th>
+            <th className="px-4 py-3 text-right">6s</th>
+            <th className="px-4 py-3 text-right">SR</th>
+            <th className="px-4 py-3">Dismissal</th>
           </tr>
         </thead>
         <tbody>
@@ -61,20 +59,19 @@ const BattingTable = ({ data, getPlayer, getDismissalInfo }) => {
 
 // Bowling Table
 const BowlingTable = ({ data, getPlayer }) => {
-    const { t } = useTranslation();
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-600">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
-                        <th className="px-4 py-3">{t('bowler')}</th>
-                        <th className="px-4 py-3 text-right">{t('O')}</th>
-                        <th className="px-4 py-3 text-right">{t('M')}</th>
-                        <th className="px-4 py-3 text-right">{t('R')}</th>
-                        <th className="px-4 py-3 text-right">{t('W')}</th>
-                        <th className="px-4 py-3 text-right">{t('Econ')}</th>
-                        <th className="px-4 py-3 text-right">{t('WD')}</th>
-                        <th className="px-4 py-3 text-right">{t('NB')}</th>
+                        <th className="px-4 py-3">Bowler</th>
+                        <th className="px-4 py-3 text-right">O</th>
+                        <th className="px-4 py-3 text-right">M</th>
+                        <th className="px-4 py-3 text-right">R</th>
+                        <th className="px-4 py-3 text-right">W</th>
+                        <th className="px-4 py-3 text-right">Econ</th>
+                        <th className="px-4 py-3 text-right">WD</th>
+                        <th className="px-4 py-3 text-right">NB</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,7 +101,6 @@ const BowlingTable = ({ data, getPlayer }) => {
 
 // Match Info Component
 const MatchInfo = ({ match, getTeamName, getOfficialName }) => {
-    const { t } = useTranslation();
     const renderPlayers = (playersList) => playersList?.map((p, idx) => (
         <li key={idx} className="flex justify-between text-sm py-1 border-b border-gray-100">
             <span>{p.name}</span>
@@ -115,19 +111,19 @@ const MatchInfo = ({ match, getTeamName, getOfficialName }) => {
     return (
         <div className="space-y-4">
             <ul className="text-sm text-gray-700 space-y-1">
-                <li><span className="font-semibold">{t('venue')}:</span> {match.venue?.name || "N/A"}, {match.venue?.city}</li>
-                <li><span className="font-semibold">{t('toss')}:</span> {getTeamName(match.toss_won_team_id)} {t('elected_to')} {match.elected}</li>
-                <li><span className="font-semibold">{t('first_umpire')}:</span> {getOfficialName(match.first_umpire_id) || "N/A"}</li>
-                <li><span className="font-semibold">{t('second_umpire')}:</span> {getOfficialName(match.second_umpire_id) || "N/A"}</li>
-                <li><span className="font-semibold">{t('tv_umpire')}:</span> {getOfficialName(match.tv_umpire_id) || "N/A"}</li>
-                <li><span className="font-semibold">{t('referee')}:</span> {getOfficialName(match.referee_id) || "N/A"}</li>
+                <li><span className="font-semibold">Venue:</span> {match.venue?.name || "N/A"}, {match.venue?.city}</li>
+                <li><span className="font-semibold">Toss:</span> {getTeamName(match.toss_won_team_id)} elected to {match.elected}</li>
+                <li><span className="font-semibold">First Umpire:</span> {getOfficialName(match.first_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">Second Umpire:</span> {getOfficialName(match.second_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">TV Umpire:</span> {getOfficialName(match.tv_umpire_id) || "N/A"}</li>
+                <li><span className="font-semibold">Referee:</span> {getOfficialName(match.referee_id) || "N/A"}</li>
             </ul>
             {match.squads?.map((teamSquad, idx) => (
                 <div key={idx} className="space-y-2">
                     <h3 className="text-md font-semibold text-gray-800">{getTeamName(teamSquad.team_id)}</h3>
                     {teamSquad.playing_xi?.length > 0 && (
                         <div>
-                            <p className="font-semibold text-gray-600 mb-1">{t('playing_xi')}</p>
+                            <p className="font-semibold text-gray-600 mb-1">Playing XI</p>
                             <ul className="border rounded-md divide-y divide-gray-100 p-2">{renderPlayers(teamSquad.playing_xi)}</ul>
                         </div>
                     )}
@@ -148,7 +144,6 @@ export default function MatchDetails() {
   const [officials, setOfficials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("scorecard");
-  const { t } = useTranslation(); // 2. Call hook
 
   const [activeInning, setActiveInning] = useState(0);
   const [userSelectedInning, setUserSelectedInning] = useState(false);
@@ -191,32 +186,47 @@ export default function MatchDetails() {
   }, [id]);
   
   const getTeamName = (id) => teams.find(t => t.id === id)?.name || `Team ${id}`;
+  const battingByTeam = useMemo(() => (match?.batting || []).reduce((acc, bat) => { (acc[bat.team_id] = acc[bat.team_id] || []).push(bat); return acc; }, {}), [match]);
+
+  const firstInningTeamId = useMemo(() => {
+    if (!match) return null;
+    const tossWinner = match.toss_won_team_id;
+    const otherTeam = tossWinner === match.localteam_id ? match.visitorteam_id : match.localteam_id;
+    return match.elected === 'batting' ? tossWinner : otherTeam;
+  }, [match]);
 
   const innings = useMemo(() => {
-    if (!match || !teams.length) return [];
-    const battingByTeam = (match.batting || []).reduce((acc, bat) => {
-        (acc[bat.team_id] = acc[bat.team_id] || []).push(bat);
-        return acc;
-    }, {});
-    const teamIds = [match.localteam_id, match.visitorteam_id];
-    return teamIds
+    if (!match || !teams.length || !firstInningTeamId) return [];
+    
+    const secondInningTeamId = firstInningTeamId === match.localteam_id ? match.visitorteam_id : match.localteam_id;
+    const orderedTeamIds = [firstInningTeamId, secondInningTeamId];
+
+    return orderedTeamIds
         .map((teamId) => ({
             battingTeam: teamId,
-            bowlingTeam: teamIds.find((id) => id !== teamId),
-            title: t('innings_title', { teamName: getTeamName(teamId) }),
+            bowlingTeam: teamId === firstInningTeamId ? secondInningTeamId : firstInningTeamId,
+            title: `${getTeamName(teamId)} Innings`,
         }))
         .filter(
             (inn) =>
             (battingByTeam[inn.battingTeam]?.length > 0) ||
             (Array.isArray(match.runs) && match.runs.some((r) => r.team_id === inn.battingTeam))
         );
-}, [match, teams, t]);
+  }, [match, teams, getTeamName, battingByTeam, firstInningTeamId]);
+
+  const isMatchFinished = useMemo(() => {
+    if (!match?.status) return false;
+    const status = match.status.toLowerCase();
+    const note = match.note?.toLowerCase() || '';
+    return status.includes('finish') || status.includes('ended') || status.includes('result') || note.includes('won');
+  }, [match]);
 
   useEffect(() => {
-    if (innings.length > 1 && !userSelectedInning) {
-      setActiveInning(1);
+    if (innings.length > 0 && !userSelectedInning) {
+      const defaultInning = isMatchFinished ? 0 : innings.length - 1;
+      setActiveInning(defaultInning);
     }
-  }, [innings.length, userSelectedInning]);
+  }, [innings.length, userSelectedInning, isMatchFinished]);
 
   const handleInningChange = (index) => {
     setUserSelectedInning(true);
@@ -224,7 +234,7 @@ export default function MatchDetails() {
   };
 
   if (loading) return <Spinner />;
-  if (!match) return <p className="text-center mt-20 text-gray-600">{t('match_not_found')}</p>;
+  if (!match) return <p className="text-center mt-20 text-gray-600">Match not found</p>;
 
   const getTeam = (id) => teams.find((t) => t.id === id);
   const getTeamLogo = (id) => getTeam(id)?.image_path || "https://via.placeholder.com/50";
@@ -233,16 +243,20 @@ export default function MatchDetails() {
   const getOfficialName = (id) => officials.find((o) => o.id === id)?.fullname || `Official ${id}`;
   
   const getDismissalInfo = (b) => {
-    if (b.runout_by_id) return t('run_out', { fielder: getPlayer(b.runout_by_id)?.fullname || '' });
-    if (b.catch_stump_player_id && b.bowling_player_id) return t('caught_bowled', { catcher: getPlayer(b.catch_stump_player_id)?.fullname || '', bowler: getPlayer(b.bowling_player_id)?.fullname || '' });
-    if (b.bowling_player_id) return t('bowled', { bowler: getPlayer(b.bowling_player_id)?.fullname || '' });
-    return <span className="font-bold text-green-600">{t('not_out')}</span>;
+    const bowler = getPlayer(b.bowling_player_id)?.fullname || '';
+    const catcher = getPlayer(b.catch_stump_player_id)?.fullname || '';
+    const fielder = getPlayer(b.runout_by_id)?.fullname || '';
+
+    if (b.runout_by_id) return `Run Out (${fielder})`;
+    if (b.catch_stump_player_id && b.bowling_player_id) return `c ${catcher} b ${bowler}`;
+    if (b.bowling_player_id) return `b ${bowler}`;
+    return <span className="font-bold text-green-600">Not Out</span>;
   };
 
-  const battingByTeam = (match.batting || []).reduce((acc, bat) => { (acc[bat.team_id] = acc[bat.team_id] || []).push(bat); return acc; }, {});
   const bowlingByTeam = (match.bowling || []).reduce((acc, bowl) => { (acc[bowl.team_id] = acc[bowl.team_id] || []).push(bowl); return acc; }, {});
   
   const getInningsStats = (teamId) => {
+    if (!teamId) return { totalRuns: 0, totalWickets: 0, overs: "0.0" };
     if (Array.isArray(match.runs)) {
       const teamRuns = match.runs.filter(r => r.team_id === teamId).pop();
       if (teamRuns) {
@@ -295,35 +309,42 @@ export default function MatchDetails() {
   const stats = getInningsStats(activeInningData.battingTeam);
   const { totalRuns, totalWickets, overs } = stats;
   const runsNeededInfo = computeRunsNeededInfo();
-  const isMatchFinished = match.note && match.note.toLowerCase().includes('won');
 
   const renderScoreSummary = () => {
     const ballsBowled = oversToBalls(overs);
     const crr = ballsBowled > 0 ? (totalRuns / ballsBowled) * 6 : 0;
 
     if (activeInning === 1 && !isMatchFinished && runsNeededInfo.runsNeeded > 0) {
-      const { runsNeeded, ballsRemaining, reqRR } = runsNeededInfo;
-      return <p className="text-sm text-gray-500">{t('chase_summary', { runs: runsNeeded, balls: ballsRemaining, crr: crr.toFixed(2), reqRR: reqRR.toFixed(2) })}</p>;
+      const { reqRR } = runsNeededInfo;
+      return <p className="text-sm font-semibold text-gray-600">{`CRR: ${crr.toFixed(2)}  |  Req RR: ${reqRR.toFixed(2)}`}</p>;
     }
     
-    return <p className="text-sm text-gray-500">{t('crr_summary', { crr: crr.toFixed(2) })}</p>;
+    return <p className="text-sm font-semibold text-gray-600">{`CRR: ${crr.toFixed(2)}`}</p>;
   };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-6">
         <Card className="p-6">
-          <p className="text-sm font-semibold text-blue-600">{match.round || match.type}</p>
+          <p className="text-sm font-semibold text-[#2354a8]">{match.round || match.type}</p>
           <h1 className="text-3xl font-bold text-gray-800 mt-1">
-            {getTeamName(match.localteam_id)} {t('vs')} {getTeamName(match.visitorteam_id)}
+            {getTeamName(match.localteam_id)} vs {getTeamName(match.visitorteam_id)}
           </h1>
           <p className="text-md text-gray-500 mt-2">{getLeagueName(match.league_id)}</p>
-          <p className="mt-4 text-lg font-semibold text-red-600">{match.note || match.status}</p>
+          {match.toss_won_team_id && (
+            <p className="text-sm text-green-700 mt-1">{`${getTeamName(match.toss_won_team_id)} won the toss and elected to ${match.elected}`}</p>
+          )}
+          
+          {innings.length > 1 && !isMatchFinished && getInningsStats(innings[0].battingTeam).totalRuns > 0 ? (
+            <p className="mt-4 text-lg font-semibold text-red-600">{`Target ${getInningsStats(innings[0].battingTeam).totalRuns + 1} runs`}</p>
+          ) : (
+            <p className="mt-4 text-lg font-semibold text-red-600">{match.note || match.status}</p>
+          )}
         </Card>
 
         <div className="flex gap-2">
-          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("scorecard")}>{t('scorecard')}</button>
-          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("matchinfo")}>{t('match_info')}</button>
+          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-[#2354a8] text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("scorecard")}>Scorecard</button>
+          <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-[#2354a8] text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("matchinfo")}>Match Info</button>
         </div>
 
         {activeTab === "scorecard" && (
@@ -331,21 +352,24 @@ export default function MatchDetails() {
             {innings.length > 0 && (
               <div className="flex gap-2 p-1 bg-gray-200 rounded-lg">
                 {innings.map((inn, index) => (
-                  <button key={index} className={`w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${activeInning === index ? "bg-white text-blue-600 shadow" : "bg-transparent text-gray-600 hover:bg-gray-300"}`} onClick={() => handleInningChange(index)}>{inn.title}</button>
+                  <button key={index} className={`w-full px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 ${activeInning === index ? "bg-white text-[#2354a8] shadow" : "bg-transparent text-gray-600 hover:bg-gray-300"}`} onClick={() => handleInningChange(index)}>{inn.title}</button>
                 ))}
               </div>
             )}
 
             <Card>
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                  <img src={getTeamLogo(activeInningData.battingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
-                  <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold">{totalRuns}/{totalWickets} ({overs} ov)</p>
-                  {renderScoreSummary()}
-                </div>
+              <div className="p-4 border-b border-gray-200 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
+                  <div className="flex items-center gap-3 self-start sm:self-center">
+                    <img src={getTeamLogo(activeInningData.battingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
+                    <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
+                  </div>
+                  <div className="text-center sm:text-right">
+                    <p className="text-2xl font-bold text-gray-800">
+                      {totalRuns}/{totalWickets}{' '}
+                      <span className="text-lg font-normal text-gray-500">({overs} ov)</span>
+                    </p>
+                    {renderScoreSummary()}
+                  </div>
               </div>
               <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
             </Card>
@@ -353,7 +377,7 @@ export default function MatchDetails() {
             <Card>
               <div className="p-4 border-b border-gray-200 flex items-center gap-3">
                 <img src={getTeamLogo(activeInningData.bowlingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
-                <h2 className="text-xl font-bold text-gray-800">{t('bowling_title', { teamName: getTeamName(activeInningData.bowlingTeam) })}</h2>
+                <h2 className="text-xl font-bold text-gray-800">{`Bowling - ${getTeamName(activeInningData.bowlingTeam)}`}</h2>
               </div>
               <BowlingTable data={bowlingData} getPlayer={getPlayer} />
             </Card>
@@ -363,11 +387,10 @@ export default function MatchDetails() {
         {activeTab === "matchinfo" && <Card className="p-4"><MatchInfo match={match} getTeamName={getTeamName} getOfficialName={getOfficialName} /></Card>}
 
         <div className="text-center pt-4">
-          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow hover:shadow-lg">{t('back_to_matches')}</button>
+          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-[#2354a8] text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow hover:shadow-lg">Back to Matches</button>
         </div>
       </div>
     </div>
   );
 }
-
 

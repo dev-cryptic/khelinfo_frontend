@@ -5,7 +5,7 @@ const Terms = () => {
     <div className="p-6 md:p-12 max-w-4xl mx-auto text-[#333] font-sans">
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#003366]">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#2354a8]">
           Terms and Conditions
         </h1>
         <p className="text-sm sm:text-base text-gray-500 mt-2">
@@ -23,7 +23,7 @@ const Terms = () => {
 
       {/* Use of Website */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           1. Use of the Website
         </h2>
         <ul className="list-disc list-inside space-y-2 text-sm sm:text-base leading-relaxed">
@@ -35,7 +35,7 @@ const Terms = () => {
 
       {/* User Content */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           2. User Content
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -46,7 +46,7 @@ const Terms = () => {
 
       {/* Intellectual Property */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           3. Intellectual Property
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -57,7 +57,7 @@ const Terms = () => {
 
       {/* Disclaimer */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           4. Disclaimer of Liability
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -68,7 +68,7 @@ const Terms = () => {
 
       {/* Third-party Links */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           5. Third-party Links
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -79,7 +79,7 @@ const Terms = () => {
 
       {/* Account Termination */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           6. Account Termination
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -90,7 +90,7 @@ const Terms = () => {
 
       {/* Changes to Terms */}
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           7. Changes to Terms
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
@@ -100,12 +100,12 @@ const Terms = () => {
 
       {/* Contact */}
       <section className="mb-12">
-        <h2 className="text-xl sm:text-2xl font-semibold text-[#003366] mb-2">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2354a8] mb-2">
           8. Contact Us
         </h2>
         <p className="text-sm sm:text-base leading-relaxed">
           If you have any questions about these terms, reach out at{" "}
-          <a href="mailto:support@khelinfo.in" className="text-[#003366] underline">
+          <a href="mailto:support@khelinfo.in" className="text-[#2354a8] underline">
             support@khelinfo.in
           </a>.
         </p>
