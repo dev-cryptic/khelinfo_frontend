@@ -61,6 +61,13 @@ const MatchCard = ({
     else if (secondInningsScoreObj.runs > firstInningsScoreObj.runs) displayCenter = `${secondInningsTeam} won the match`;
     else displayCenter = 'Match Drawn';
   }
+  else if (
+    isPotentiallyLive &&
+    (firstInningsScoreObj.wickets >= 10 || firstInningsScoreObj.overs >= maxOvers) &&
+    secondInningsScoreObj.overs === 0 && secondInningsScoreObj.runs === 0
+  ) {
+    displayCenter = `${secondInningsTeam} need ${firstInningsScoreObj.runs + 1} to win`;
+  }
   else if (innings === 2 && isPotentiallyLive) {
     const runsNeeded = Math.max(firstInningsScoreObj.runs - secondInningsScoreObj.runs + 1, 0);
     const ballsBowled = Math.floor(secondInningsScoreObj.overs) * 6 + Math.round((secondInningsScoreObj.overs % 1) * 10);
@@ -152,12 +159,12 @@ const MatchCard = ({
       {/* Footer */}
       <div className="mt-3 pt-2 border-t border-gray-200/60 flex items-center justify-between min-h-[24px]">
         <div className="flex-shrink-0 w-12 text-left">
-            {isLive && (
-              <p className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-red-600">
-                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                {'Live'}
-              </p>
-            )}
+          {isLive && (
+            <p className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-red-600">
+              <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+              {'Live'}
+            </p>
+          )}
         </div>
         <p className={`flex-1 text-center text-xs sm:text-sm font-semibold ${statusColor}`}>
           {displayCenter}
@@ -169,5 +176,3 @@ const MatchCard = ({
 };
 
 export default MatchCard;
-
-  
