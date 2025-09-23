@@ -107,9 +107,9 @@ const FootballCard = ({
       matchHasConcluded = true;
       break;
     default:
-       displayCenter = match.status || "Finished";
-       matchHasConcluded = true;
-       break;
+      displayCenter = match.status || "Finished";
+      matchHasConcluded = true;
+      break;
   }
   
   const isLive = (state?.live === true || match.live === true) && !matchHasConcluded;
@@ -138,7 +138,7 @@ const FootballCard = ({
             <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{teamA.name}</span>
           </div>
           <div className="text-sm sm:text-base font-bold text-gray-900">
-            {isFixture ? fixtureTime.date : teamAScore}
+            {isFixture ? '-' : teamAScore}
           </div>
         </div>
 
@@ -148,23 +148,33 @@ const FootballCard = ({
             <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{teamB.name}</span>
           </div>
           <div className="text-sm sm:text-base font-bold text-gray-900">
-            {isFixture ? fixtureTime.time : teamBScore}
+            {isFixture ? '-' : teamBScore}
           </div>
         </div>
 
         <div className="mt-3 pt-2 border-t border-gray-200/60 flex items-center justify-between min-h-[24px]">
-          <div className="flex-shrink-0 w-12 text-left">
-            {isLive && (
-              <p className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-red-600">
-                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                Live
+          {isFixture ? (
+            <>
+              <p className="text-xs sm:text-sm font-semibold text-gray-700">{fixtureTime.date}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900">{displayCenter}</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-700">{fixtureTime.time}</p>
+            </>
+          ) : (
+            <>
+              <div className="flex-shrink-0 w-12 text-left">
+                {isLive && (
+                  <p className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-red-600">
+                    <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                    Live
+                  </p>
+                )}
+              </div>
+              <p className={`flex-1 text-center text-xs sm:text-sm font-semibold ${statusColor}`}>
+                {displayCenter}
               </p>
-            )}
-          </div>
-          <p className={`flex-1 text-center text-xs sm:text-sm font-semibold ${statusColor}`}>
-            {displayCenter}
-          </p>
-          <div className="w-12"></div>
+              <div className="w-12"></div>
+            </>
+          )}
         </div>
       </button>
 

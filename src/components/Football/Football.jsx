@@ -113,7 +113,7 @@ const Football = () => {
               onClick={() => setVisibleCount(prev => prev + 8)}
               className="px-6 py-2 bg-blue-800 text-white rounded-xl shadow hover:bg-blue-700 transition"
             >
-              Load More
+              More...
             </button>
           </div>
         )}

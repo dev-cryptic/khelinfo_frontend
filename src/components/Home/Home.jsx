@@ -678,7 +678,7 @@ function Home() {
                             onClick={() => setVisibleBlogs(prev => prev + 8)}
                             className="bg-[#2354a8] text-white font-semibold px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
                         >
-                            {t('load_more')}
+                            {t('more...')}
                         </button>
                     </div>
                 )}
