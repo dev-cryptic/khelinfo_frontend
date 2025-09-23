@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+
+const CRICKET_API_URL = import.meta.env.VITE_CRICKET_API_URL
 function Rankings() {
   const [gender, setGender] = useState("men");
   const [format, setFormat] = useState("one-day"); // map to ODI, T20I, TEST
@@ -20,7 +22,7 @@ function Rankings() {
       setLoading(true);
       setError("");
       try {
-        const response = await axios.get("https://khelinfo-bkd.onrender.com/api/rankings");
+        const response = await axios.get(`${CRICKET_API_URL}/rankings`);
         const data = response.data.data;
 
         // Filter by gender and type

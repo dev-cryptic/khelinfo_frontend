@@ -2,22 +2,31 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
+// Define the API URL from environment variables
+const CRICKET_API_URL = import.meta.env.VITE_CRICKET_API_URL;
+
 const Cricket = () => {
   const [blogs, setBlogs] = useState([]);
+  const [matches, setMatches] = useState([]); // State for matches from API
 
+  // Fetch blogs
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await axios.get("https://gnews.io/api/v4/top-headlines", {
-          params: {
-            q: "cricket",
-            lang: "en",
-            country: "us",
-            max: 12,
-            apikey: "5eed3c7f648610ff6e1c1d92be607d30",
-          },
-        });
-        setBlogs(response.data.articles || []);
+        const response = await axios.get('https://api.webz.io/newsApiLite?token=33bef10f-7f07-432b-a694-320d8b17ba67&q=cricket');
+        
+        // Correctly handle the 'posts' array from the API response
+        if (response.data.posts && response.data.posts.length > 0) {
+          const blogData = response.data.posts.map(post => ({
+            url: post.url,
+            image: post.thread?.main_image, // Safely access nested image
+            title: post.title,
+            description: post.text,
+          }));
+          setBlogs(blogData);
+        } else {
+          setBlogs([]);
+        }
       } catch (error) {
         console.error("Error fetching blogs:", error);
       }
@@ -26,21 +35,41 @@ const Cricket = () => {
     fetchBlogs();
   }, []);
 
-  // Temporary mock matches
-  const matches = Array.from({ length: 10 }).map((_, i) => ({
-    id: i,
-    teamA: `Team A${i + 1}`,
-    teamB: `Team B${i + 1}`,
-    status: i % 2 === 0 ? "Live" : "Scheduled",
-    time: `Jul ${i + 17}, 3:00 PM IST`,
-  }));
+  // Fetch live matches
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await axios.get(`${CRICKET_API_URL}/livescores`);
+        const liveMatches = response.data.data || [];
+        
+        const formattedMatches = liveMatches.map((match) => ({
+          id: match.id,
+          teamA: `Team ${match.localteam_id}`,
+          teamB: `Team ${match.visitorteam_id}`,
+          status: match.live ? "Live" : (match.note || match.status),
+          time: new Date(match.starting_at).toLocaleString("en-IN", { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+        }));
+
+        setMatches(formattedMatches);
+      } catch (error) {
+        console.error("Error fetching live matches:", error);
+      }
+    };
+    fetchMatches();
+  }, []);
 
   const navItems = [
-    { label: "Live Scores", path: "/cricket/live-scores" },
+    // { label: "Live Scores", path: "/cricket/live-scores" },
     { label: "Fixtures", path: "/fixtures" },
-    { label: "News", path: "/cricket/news" },
-    { label: "Series", path: "/cricket/series" },
-    { label: "Teams", path: "/cricket/teams" },
+    { label: "News", path: "/news" },
+    // { label: "Series", path: "/cricket/series" },
+    { label: "Teams", path: "/teams" },
     { label: "Rankings", path: "/rankings" },
   ];
 
@@ -79,7 +108,7 @@ const Cricket = () => {
               </div>
               <div
                 className={`text-sm font-medium ${
-                  match.status === "Live" ? "text-red-600" : "text-gray-600"
+                  match.status === "Live" ? "text-red-600 animate-pulse" : "text-gray-600"
                 }`}
               >
                 {match.status}

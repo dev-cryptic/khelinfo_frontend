@@ -20,6 +20,7 @@ import Rankings from './pages/Rankings.jsx';
 import Fixtures from './pages/Cricket/Fixtures.jsx';
 import Series from './pages/Cricket/Fixtures.jsx';
 import Teams from './pages/Cricket/Teams.jsx';
+import News from './pages/Cricket/News.jsx';
 import MatchDetails from './components/Home/MatchDetails.jsx'
 
 const router = createBrowserRouter(
@@ -38,6 +39,7 @@ const router = createBrowserRouter(
     <Route path="/fixtures" element={<Fixtures />} />
     <Route path="/series" element={<Series />} />
     <Route path="/teams" element={<Teams />} />
+    <Route path="/news" element={<News />} />
     <Route path="/match/:id" element={<MatchDetails />} />
 </Route>
     

@@ -25,7 +25,11 @@ function Footer() {
         <div className="w-[45%] sm:w-[22%] md:w-[18%] min-w-[100px]">
           <h2 className="font-semibold text-gray-900 mb-1">{t('quick_links')}</h2>
           <ul className="list-none space-y-1">
-            <li><a className="hover:text-gray-800">{t('icc_rankings')}</a></li>
+            <li>
+              <Link to="/rankings" className="hover:text-gray-800">
+                {t('Cric-Ranking')}
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -46,8 +50,8 @@ function Footer() {
           <ul className="list-none space-y-1">
             <li><Link to='/cricket' className="hover:text-gray-800">{t('cricket')}</Link></li>
             <li><Link to="/football" className="hover:text-gray-800">{t('football')}</Link></li>
-            <li><Link to="/kabaddi" className="hover:text-gray-800">{t('kabaddi')}</Link></li>
-            <li><Link to="/basketball" className="hover:text-gray-800">{t('basketball')}</Link></li>
+            {/* <li><Link to="/kabaddi" className="hover:text-gray-800">{t('kabaddi')}</Link></li> */}
+            {/* <li><Link to="/basketball" className="hover:text-gray-800">{t('basketball')}</Link></li> */}
           </ul>
         </div>
 
@@ -72,7 +76,7 @@ function Footer() {
       {/* Bottom Bar */}
       <div className="bg-gray-100">
         <div className="container mx-auto py-2 px-3 flex flex-wrap items-center justify-between text-[10px] sm:text-xs gap-y-2">
-          <p className="text-gray-500">© 2025 KHELiNFO</p>
+          <p className="text-gray-500">© 2025 KHELINFO</p>
           <span className="inline-flex space-x-2">
             <a className="text-gray-500">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">

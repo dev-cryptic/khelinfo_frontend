@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
+
+const CRICKET_API_URL=import.meta.env.VITE_CRICKET_API_URL
 // Spinner Component
 const Spinner = () => (
   <div className="flex justify-center items-center h-screen">
@@ -152,10 +155,10 @@ export default function MatchDetails() {
     const fetchStaticData = async () => {
       try {
         const [teamsRes, playersRes, leaguesRes, officialsRes] = await Promise.all([
-          axios.get("https://khelinfo-bkd.onrender.com/api/teams"),
-          axios.get("https://khelinfo-bkd.onrender.com/api/players"),
-          axios.get("https://khelinfo-bkd.onrender.com/api/leagues"),
-          axios.get("https://khelinfo-bkd.onrender.com/api/officials"),
+          axios.get(`${CRICKET_API_URL}/teams`),
+          axios.get(`${CRICKET_API_URL}/players`),
+          axios.get(`${CRICKET_API_URL}/leagues`),
+          axios.get(`${CRICKET_API_URL}/officials`),
         ]);
         setTeams(teamsRes.data.data);
         setPlayers(playersRes.data.data);
@@ -171,7 +174,7 @@ export default function MatchDetails() {
   useEffect(() => {
     const fetchMatch = async () => {
       try {
-        const res = await axios.get("https://khelinfo-bkd.onrender.com/api/livescores");
+        const res = await axios.get(`${CRICKET_API_URL}/livescores`);
         const foundMatch = res.data.data.find((m) => m.id === parseInt(id));
         if (foundMatch) setMatch(foundMatch);
       } catch (err) {

@@ -129,7 +129,7 @@ function Header() {
           </div>
 
           <Link to="/football" className="hover:text-[#012666]">{t("football")}</Link>
-          <Link to="/kabaddi" className="hover:text-[#012666]">{t("kabaddi")}</Link>
+          {/* <Link to="/kabaddi" className="hover:text-[#012666]">{t("kabaddi")}</Link> */}
         </div>
 
         {/* Mobile Sidebar */}
@@ -177,7 +177,7 @@ function Header() {
                 </div>
               </details>
               <Link to="/football" className="block py-2 text-sm text-gray-700 hover:text-[#012666]">{t("football")}</Link>
-              <Link to="/kabaddi" className="block py-2 text-sm text-gray-700 hover:text-[#012666]">{t("kabaddi")}</Link>
+              {/* <Link to="/kabaddi" className="block py-2 text-sm text-gray-700 hover:text-[#012666]">{t("kabaddi")}</Link> */}
             </div>
           </>
         )}

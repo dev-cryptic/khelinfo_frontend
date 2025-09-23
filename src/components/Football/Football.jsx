@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
+
+const FOOTBALL_API_URL = import.meta.env.VITE_FOOTBALL_API_URL;
+
 const Football = () => {
   const [blogs, setBlogs] = useState([]);
+  const [fixtures, setFixtures] = useState([]);
+  const [teams, setTeams] = useState({});
+  const [visibleCount, setVisibleCount] = useState(8); // initially show 8 fixtures
 
+  // Fetch blogs
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -22,54 +30,93 @@ const Football = () => {
         console.error('Error fetching football blogs:', error);
       }
     };
-
     fetchBlogs();
   }, []);
 
-  const matches = Array.from({ length: 10 }).map((_, i) => ({
-    id: i,
-    teamA: `Club A${i + 1}`,
-    teamB: `Club B${i + 1}`,
-    status: i % 2 === 0 ? 'Live' : 'Scheduled',
-    time: `Jul ${i + 17}, 7:00 PM IST`
-  }));
+  // Fetch fixtures + teams
+  useEffect(() => {
+    const fetchFixturesAndTeams = async () => {
+      try {
+        const fixtureRes = await axios.get(
+          `${FOOTBALL_API_URL}/football/fixtures`
+        );
+        setFixtures(fixtureRes.data.data);
+
+        const teamRes = await axios.get(
+          `${FOOTBALL_API_URL}/football/teams`
+        );
+
+        const teamMap = {};
+        teamRes.data.data.forEach((team) => {
+          teamMap[team.id] = team;
+        });
+        setTeams(teamMap);
+      } catch (error) {
+        console.error('Error fetching fixtures/teams:', error);
+      }
+    };
+    fetchFixturesAndTeams();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-black">
-      {/* Header */}
-      <header className="bg-white shadow-md py-4">
-        <div className="container mx-auto flex flex-col items-center">
-          <nav className="w-full flex flex-wrap justify-around sm:justify-around text-sm sm:text-base font-medium">
-            {['Live Scores', 'Fixtures', 'News', 'Leagues', 'Teams', 'Rankings'].map(item => (
-              <a
-                key={item}
-                href="#"
-                className="text-black hover:text-blue-800 transition-colors duration-200 text-sm sm:text-base"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        </div>
-      </header>
-
-      {/* Match Cards */}
+      {/* Fixtures Section */}
       <section className="py-10 px-4 sm:px-8 lg:px-16">
-        <h2 className="text-2xl font-semibold text-center text-black mb-8">Matches</h2>
+        <h2 className="text-2xl font-semibold text-center text-black mb-8">Fixtures</h2>
+
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {matches.map(match => (
-            <div
-              key={match.id}
-              className="bg-white shadow-md rounded-2xl p-5 border-l-4 border-transparent hover:border-blue-800 hover:shadow-lg transition"
-            >
-              <div className="text-lg font-semibold text-black mb-2">
-                {match.teamA} vs {match.teamB}
+          {fixtures.slice(0, visibleCount).map((fixture) => {
+            const home = fixture.participants.find(p => p.meta.location === 'home');
+            const away = fixture.participants.find(p => p.meta.location === 'away');
+
+            return (
+              <div
+                key={fixture.id}
+                className="bg-white shadow-md rounded-2xl p-5 border-l-4 border-transparent hover:border-blue-800 hover:shadow-lg transition"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  {/* Home Team */}
+                  <div className="flex flex-col items-center">
+                    <img
+                      src={teams[home?.id]?.image_path || home?.image_path}
+                      alt={home?.name}
+                      className="w-12 h-12 object-contain mb-1"
+                    />
+                    <span className="text-sm font-semibold text-black">{home?.name}</span>
+                  </div>
+
+                  <span className="text-lg font-bold text-gray-700">vs</span>
+
+                  {/* Away Team */}
+                  <div className="flex flex-col items-center">
+                    <img
+                      src={teams[away?.id]?.image_path || away?.image_path}
+                      alt={away?.name}
+                      className="w-12 h-12 object-contain mb-1"
+                    />
+                    <span className="text-sm font-semibold text-black">{away?.name}</span>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  Status: {fixture.status}
+                </div>
               </div>
-              <div className="text-sm text-gray-600 mb-1">{match.status}</div>
-              <div className="text-sm text-gray-600">{match.time}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Load More Button */}
+        {visibleCount < fixtures.length && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 8)}
+              className="px-6 py-2 bg-blue-800 text-white rounded-xl shadow hover:bg-blue-700 transition"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Blog Section */}
@@ -108,191 +155,3 @@ const Football = () => {
 };
 
 export default Football;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState, useRef, useEffect } from "react";
-
-// const MultiSelectDropdown = ({ options }) => {
-//   const [selected, setSelected] = useState([]);
-//   const [open, setOpen] = useState(false);
-//   const dropdownRef = useRef(null);
-
-//   const toggleOption = (option) => {
-//     if (selected.includes(option)) {
-//       setSelected(selected.filter((item) => item !== option));
-//     } else {
-//       setSelected([...selected, option]);
-//     }
-//   };
-
-//   const handleClickOutside = (event) => {
-//     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-//       setOpen(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     document.addEventListener("mousedown", handleClickOutside);
-//     return () => document.removeEventListener("mousedown", handleClickOutside);
-//   }, []);
-
-//   return (
-//     <div style={{ position: "relative", width: 250 }} ref={dropdownRef}>
-//       <div
-//         onClick={() => setOpen(!open)}
-//         style={{
-//           border: "1px solid #ccc",
-//           padding: "8px",
-//           minHeight: "40px",
-//           cursor: "pointer",
-//           display: "flex",
-//           flexWrap: "wrap",
-//           gap: "5px",
-//         }}
-//       >
-//         {selected.length === 0
-//           ? "Select options..."
-//           : selected.map((item) => (
-//               <span
-//                 key={item}
-//                 style={{
-//                   background: "#007bff",
-//                   color: "#fff",
-//                   padding: "2px 6px",
-//                   borderRadius: "5px",
-//                   fontSize: "14px",
-//                 }}
-//               >
-//                 {item}
-//               </span>
-//             ))}
-//       </div>
-
-//       {open && (
-//         <div
-//           style={{
-//             position: "absolute",
-//             top: "100%",
-//             left: 0,
-//             right: 0,
-//             border: "1px solid #ccc",
-//             background: "#fff",
-//             maxHeight: "150px",
-//             overflowY: "auto",
-//             zIndex: 100,
-//           }}
-//         >
-//           {options.map((option) => (
-//             <div
-//               key={option}
-//               onClick={() => toggleOption(option)}
-//               style={{
-//                 padding: "8px",
-//                 cursor: "pointer",
-//                 backgroundColor: selected.includes(option)
-//                   ? "#f0f0f0"
-//                   : "#fff",
-//               }}
-//             >
-//               {option}
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// // Example usage
-// const App = () => {
-//   const optionList = ["opt1", "opt2", "opt3", "opt4"];
-//   return (
-//     <div style={{ padding: "50px" }}>
-//       <h2>Multiselect Dropdown</h2>
-//       <MultiSelectDropdown options={optionList} />
-//     </div>
-//   );
-// };
-
-// export default App;
-
-
-  
-
-      
-
-
-
