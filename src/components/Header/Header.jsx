@@ -102,14 +102,14 @@ function Header() {
             </button>
             {showCricketDropdown && (
               <div className="absolute top-7 left-0 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-40">
-                {["news", "fixtures", "series", "teams", "rankings"].map((item) => {
+                {["news", "fixtures", "teams", "rankings"].map((item) => {
                   const path =
                     item === "rankings"
                       ? "/rankings"
                       : item === "fixtures"
                       ? "/fixtures"
-                      : item === "series"
-                      ? "/series"
+                      : item === "news"
+                      ? "/news"
                       : item === "teams"
                       ? "/teams"
                       : `/cricket/${item}`;
@@ -152,14 +152,14 @@ function Header() {
                   <ChevronDown className="w-3 h-3 group-open:rotate-180 transition duration-200" />
                 </summary>
                 <div className="pl-3 space-y-1">
-                  {["news", "fixtures", "series", "teams", "rankings"].map((item) => {
+                  {["news", "fixtures", "teams", "rankings"].map((item) => {
                     const path =
                       item === "rankings"
                         ? "/rankings"
                         : item === "fixtures"
                         ? "/fixtures"
-                        : item === "series"
-                        ? "/series"
+                        : item === "news"
+                        ? "/news"
                         : item === "teams"
                         ? "/teams"
                         : `/${item}`;
