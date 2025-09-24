@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // Define the API URL from environment variables
 const CRICKET_API_URL = import.meta.env.VITE_CRICKET_API_URL;
@@ -9,6 +9,8 @@ const Cricket = () => {
   const [blogs, setBlogs] = useState([]);
   const [matches, setMatches] = useState([]);
   const [teams, setTeams] = useState({}); // store teams in dictionary
+
+  const navigate = useNavigate();
 
   // Fetch blogs
   useEffect(() => {
@@ -37,7 +39,7 @@ const Cricket = () => {
     fetchBlogs();
   }, []);
 
-  // Fetch teams and matches with debugging
+  // Fetch teams and matches
   useEffect(() => {
     const fetchTeamsAndMatches = async () => {
       try {
@@ -51,27 +53,19 @@ const Cricket = () => {
           acc[team.id] = team;
           return acc;
         }, {});
-        
-        console.log("Team Map Created:", teamMap);
+
         setTeams(teamMap);
 
         const liveMatches = matchesRes.data.data || [];
+
+        // Sort matches by starting time (most recent first)
+        liveMatches.sort(
+          (a, b) => new Date(b.starting_at) - new Date(a.starting_at)
+        );
+
         const formattedMatches = liveMatches.map((match) => {
           const localTeam = teamMap[match.localteam_id];
           const visitorTeam = teamMap[match.visitorteam_id];
-
-          if (!localTeam) {
-            console.warn(
-              `Local team ID not found in map: ${match.localteam_id}`,
-              "Match:", match
-            );
-          }
-          if (!visitorTeam) {
-            console.warn(
-              `Visitor team ID not found in map: ${match.visitorteam_id}`,
-              "Match:", match
-            );
-          }
 
           return {
             id: match.id,
@@ -134,10 +128,11 @@ const Cricket = () => {
           {matches.map((match) => (
             <div
               key={match.id}
-              className="bg-white shadow-md rounded-2xl p-5 border-l-4 hover:border-blue-800 hover:shadow-lg transition"
+              className="bg-white shadow-md rounded-2xl p-5 border-l-4 hover:border-blue-800 hover:shadow-lg transition cursor-pointer"
+              onClick={() => navigate(`/match/${match.id}`)}
             >
               <div className="flex items-center justify-between mb-2">
-                {/* Team A - Added min-w-0 and truncate */}
+                {/* Team A */}
                 <div className="flex items-center gap-2 min-w-0">
                   {match.teamALogo && (
                     <img
@@ -146,12 +141,16 @@ const Cricket = () => {
                       className="w-6 h-6 rounded-full flex-shrink-0"
                     />
                   )}
-                  <span className="text-lg font-semibold truncate">{match.teamA}</span>
+                  <span className="text-lg font-semibold truncate">
+                    {match.teamA}
+                  </span>
                 </div>
-                
-                <span className="text-sm font-semibold text-gray-500 px-2">vs</span>
-                
-                {/* Team B - Added min-w-0 and truncate */}
+
+                <span className="text-sm font-semibold text-gray-500 px-2">
+                  vs
+                </span>
+
+                {/* Team B */}
                 <div className="flex items-center gap-2 min-w-0">
                   {match.teamBLogo && (
                     <img
@@ -160,20 +159,24 @@ const Cricket = () => {
                       className="w-6 h-6 rounded-full flex-shrink-0"
                     />
                   )}
-                  <span className="text-lg font-semibold truncate">{match.teamB}</span>
+                  <span className="text-lg font-semibold truncate">
+                    {match.teamB}
+                  </span>
                 </div>
               </div>
 
-              <div
-                className={`text-sm font-medium ${
+              {/* <div
+                className={`text-sm text-center font-medium ${
                   match.status === "Live"
                     ? "text-red-600 animate-pulse"
                     : "text-gray-600"
                 }`}
               >
                 {match.status}
+              </div> */}
+              <div className="text-sm text-gray-600 text-center mt-1">
+                {match.time} IST
               </div>
-              <div className="text-sm text-gray-600">{match.time}</div>
             </div>
           ))}
         </div>
