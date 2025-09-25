@@ -124,11 +124,13 @@ const Cricket = () => {
         <h2 className="text-2xl font-semibold text-center text-black mb-8">
           Matches
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* CHANGED: Reduced gap for smaller screens */}
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {matches.map((match) => (
             <div
               key={match.id}
-              className="bg-white shadow-md rounded-2xl p-5 border-l-4 hover:border-blue-800 hover:shadow-lg transition cursor-pointer"
+              /* CHANGED: Reduced padding for smaller screens (p-3) and kept original for larger (sm:p-5) */
+              className="bg-white shadow-md rounded-2xl p-3 sm:p-5 border-l-4 hover:border-blue-800 hover:shadow-lg transition cursor-pointer"
               onClick={() => navigate(`/match/${match.id}`)}
             >
               <div className="flex items-center justify-between mb-2">
@@ -141,7 +143,8 @@ const Cricket = () => {
                       className="w-6 h-6 rounded-full flex-shrink-0"
                     />
                   )}
-                  <span className="text-lg font-semibold truncate">
+                  {/* CHANGED: Made font size responsive */}
+                  <span className="text-base sm:text-lg font-semibold truncate">
                     {match.teamA}
                   </span>
                 </div>
@@ -159,7 +162,8 @@ const Cricket = () => {
                       className="w-6 h-6 rounded-full flex-shrink-0"
                     />
                   )}
-                  <span className="text-lg font-semibold truncate">
+                  {/* CHANGED: Made font size responsive */}
+                  <span className="text-base sm:text-lg font-semibold truncate">
                     {match.teamB}
                   </span>
                 </div>
@@ -187,7 +191,8 @@ const Cricket = () => {
         <h2 className="text-2xl font-semibold text-center text-black mb-8">
           Latest Cricket Blogs
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* CHANGED: Reduced gap for smaller screens */}
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {blogs.length === 0 ? (
             <p className="col-span-full text-center text-gray-600">
               No blogs available at the moment.
@@ -208,7 +213,8 @@ const Cricket = () => {
                     className="w-full h-40 object-cover rounded-t-2xl"
                   />
                 )}
-                <div className="p-4">
+                {/* CHANGED: Reduced padding for smaller screens */}
+                <div className="p-3 sm:p-4">
                   <h3 className="text-lg font-semibold text-black mb-2">
                     {blog.title
                       ? blog.title.length > 80
