@@ -365,25 +365,27 @@ export default function MatchDetails() {
             )}
 
             <Card>
-              <div className="p-4 border-b border-gray-200 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
+            {/* UPDATED: Flex container is now a single row on all screen sizes */}
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
 
-                {/* MODIFIED: Removed 'self-start' to allow centering on mobile */}
-                <div className="flex items-center gap-3 self-center">
-                  <img src={getTeamLogo(activeInningData.battingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
-                  <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
+                {/* Team Info */}
+                <div className="flex items-center gap-3">
+                    <img src={getTeamLogo(activeInningData.battingTeam)} alt={`${activeInningData.battingTeam} logo`} className="w-10 h-10 object-cover rounded-full" />
+                    <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
                 </div>
 
-                <div className="text-center sm:text-right">
-                  <p className="text-2xl font-bold text-gray-800">
-                    {totalRuns}/{totalWickets}{' '}
-                    <span className="text-lg font-normal text-gray-500">({overs} ov)</span>
-                  </p>
-                  {renderScoreSummary()}
+                {/* Score Info */}
+                <div className="text-right">
+                    <p className="text-2xl font-bold text-gray-800">
+                        {totalRuns}/{totalWickets}
+                        <span className="text-lg font-normal text-gray-500 ml-1">({overs} ov)</span>
+                    </p>
+                    {renderScoreSummary()}
                 </div>
 
-              </div>
-              <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
-            </Card>
+            </div>
+            <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
+        </Card>
 
             <Card>
               <div className="p-4 border-b border-gray-200 flex items-center gap-3">

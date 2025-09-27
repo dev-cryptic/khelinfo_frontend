@@ -265,8 +265,12 @@ const MatchCard = ({
     let displayCenter = "";
     let matchHasConcluded = false;
 
+    let topTeam = { name: teamA, logo: teamALogo, score: teamAScore };
+    let bottomTeam = { name: teamB, logo: teamBLogo, score: teamBScore };
+
+
     if (type === 'Test' || type?.toUpperCase().includes('DAY')) {
-        // Test match logic (unchanged)
+        // Test match logic (unchanged, order is fixed as provided)
         const parseTestScore = (scoreStr) => {
             if (!scoreStr) return { runs1: 0, runs2: 0, totalRuns: 0 };
             const parts = scoreStr.split('&').map(s => s.trim());
@@ -313,13 +317,13 @@ const MatchCard = ({
         const maxOvers = type?.toUpperCase().includes("T20") ? 20 : 50;
         const parseScore = (scoreStr) => {
              if (!scoreStr) return { runs: 0, wickets: 0, overs: 0 };
-             const mainScoreMatch = scoreStr.match(/^([0-9]+-[0-9]+)\s*\(([0-9.]+)\)/);
-             if (!mainScoreMatch) return { runs: 0, wickets: 0, overs: 0 };
-             const [_, runsWickets, oversPart] = mainScoreMatch;
-             const parts = (runsWickets || "0-0").split("-");
-             const runs = parseInt(parts[0], 10) || 0;
-             const wickets = parts.length > 1 ? (parseInt(parts[1], 10) || 0) : 0;
-             const overs = parseFloat(oversPart) || 0;
+             // This regex handles scores like "181-5 (20)" and also just "181-5"
+             const scoreMatch = scoreStr.match(/(\d+)-(\d+)(?:\s*\((\d+\.?\d*)\))?/);
+             if (!scoreMatch) return { runs: 0, wickets: 0, overs: 0 };
+
+             const runs = parseInt(scoreMatch[1], 10) || 0;
+             const wickets = parseInt(scoreMatch[2], 10) || 0;
+             const overs = parseFloat(scoreMatch[3]) || 0;
              return { runs, wickets: Math.min(wickets, 10), overs };
         };
 
@@ -329,43 +333,48 @@ const MatchCard = ({
             const runs = parseInt(soPart.split('-')[0], 10);
             return isNaN(runs) ? -1 : runs;
         };
-
+        
         const score1 = parseScore(teamAScore);
         const score2 = parseScore(teamBScore);
-        const teamASoRuns = getSuperOverRuns(teamAScore);
-        const teamBSoRuns = getSuperOverRuns(teamBScore);
 
-        const isSuperOverFinishedByScore = teamASoRuns !== -1 && teamBSoRuns !== -1;
+        // --- CORRECTED LOGIC to determine first batting team ---
+        let isTeamABattingFirst;
+        if (innings === 1) {
+            // In the first innings, the team with more overs is batting. 
+            // This correctly identifies the batting team even if their score is 0.
+            isTeamABattingFirst = score1.overs >= score2.overs;
+        } else { // innings is 2 or match is over
+            // In the second innings or later, the team with more overs batted first.
+            isTeamABattingFirst = score1.overs >= score2.overs;
+        }
         
-        const isTeamABattingFirst = innings === 1 || (score1.overs >= score2.overs && innings !== 2);
+        if (!isTeamABattingFirst) {
+            topTeam = { name: teamB, logo: teamBLogo, score: teamBScore };
+            bottomTeam = { name: teamA, logo: teamALogo, score: teamAScore };
+        }
+
         const firstInningsTeam = isTeamABattingFirst ? teamA : teamB;
         const firstInningsScoreObj = isTeamABattingFirst ? score1 : score2;
         const secondInningsTeam = isTeamABattingFirst ? teamB : teamA;
         const secondInningsScoreObj = isTeamABattingFirst ? score2 : score1;
         
-        // --- FINAL ROBUST LOGIC ---
-        // A match is considered finished if the status says so OR if both teams have a Super Over score.
+        const teamASoRuns = getSuperOverRuns(teamAScore);
+        const teamBSoRuns = getSuperOverRuns(teamBScore);
+        const isSuperOverFinishedByScore = teamASoRuns !== -1 && teamBSoRuns !== -1;
+
         if (isSuperOverFinishedByScore || normalizedStatus.includes("finish") || normalizedStatus.includes("ended") || normalizedStatus.includes("result")) {
             matchHasConcluded = true;
-            
             if (firstInningsScoreObj.runs === secondInningsScoreObj.runs) {
-                // Main game was a tie, decide by Super Over
-                if (teamASoRuns > teamBSoRuns) {
-                    displayCenter = `${teamA} won the Super Over`;
-                } else if (teamBSoRuns > teamASoRuns) {
-                    displayCenter = `${teamB} won the Super Over`;
-                } else { // Fallback if SO scores are tied or unavailable
-                    if (note && note.toUpperCase().includes(teamA.toUpperCase())) displayCenter = `${teamA} won the Super Over`;
-                    else if (note && note.toUpperCase().includes(teamB.toUpperCase())) displayCenter = `${teamB} won the Super Over`;
+                if (teamASoRuns > teamBSoRuns) displayCenter = `${teamA} won the Super Over`;
+                else if (teamBSoRuns > teamASoRuns) displayCenter = `${teamB} won the Super Over`;
+                else {
+                    if (note?.toUpperCase().includes(teamA.toUpperCase())) displayCenter = `${teamA} won the Super Over`;
+                    else if (note?.toUpperCase().includes(teamB.toUpperCase())) displayCenter = `${teamB} won the Super Over`;
                     else displayCenter = 'Match Tied';
                 }
             } else {
-                // Regular win by score difference
-                if (firstInningsScoreObj.runs > secondInningsScoreObj.runs) {
-                    displayCenter = `${firstInningsTeam} won the match`;
-                } else {
-                    displayCenter = `${secondInningsTeam} won the match`;
-                }
+                const winningTeam = firstInningsScoreObj.runs > secondInningsScoreObj.runs ? firstInningsTeam : secondInningsTeam;
+                displayCenter = `${winningTeam} won the match`;
             }
         } else if (normalizedNote.includes("super over in progress")) {
             displayCenter = note;
@@ -377,6 +386,7 @@ const MatchCard = ({
             const ballsBowled = Math.floor(secondInningsScoreObj.overs) * 6 + Math.round((secondInningsScoreObj.overs % 1) * 10);
             const totalBalls = maxOvers * 6;
             const ballsRemaining = Math.max(totalBalls - ballsBowled, 0);
+            
             if (secondInningsScoreObj.runs > firstInningsScoreObj.runs) {
                 displayCenter = `${secondInningsTeam} won the match`;
                 matchHasConcluded = true;
@@ -413,18 +423,18 @@ const MatchCard = ({
 
             <div className="flex items-center justify-between mt-2 py-1">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <img src={teamALogo || "https://placehold.co/40x40/EBF4FF/333333?text=A"} alt={teamA || "Team A"} className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
-                    <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{teamA || "Team A"}</span>
+                    <img src={topTeam.logo || "https://placehold.co/40x40/EBF4FF/333333?text=A"} alt={topTeam.name || "Team A"} className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
+                    <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{topTeam.name || "Team A"}</span>
                 </div>
-                <ScoreDisplay score={teamAScore} type={type} />
+                <ScoreDisplay score={topTeam.score} type={type} />
             </div>
 
             <div className="flex items-center justify-between mt-1 py-1">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <img src={teamBLogo || "https://placehold.co/40x40/FFF0F0/333333?text=B"} alt={teamB || "Team B"} className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
-                    <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{teamB || "Team B"}</span>
+                    <img src={bottomTeam.logo || "https://placehold.co/40x40/FFF0F0/333333?text=B"} alt={bottomTeam.name || "Team B"} className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
+                    <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">{bottomTeam.name || "Team B"}</span>
                 </div>
-                <ScoreDisplay score={teamBScore} type={type} />
+                <ScoreDisplay score={bottomTeam.score} type={type} />
             </div>
 
             <div className="mt-3 pt-2 border-t border-gray-200/60 flex items-center justify-between min-h-[24px]">
@@ -446,3 +456,5 @@ const MatchCard = ({
 };
 
 export default MatchCard;
+
+
