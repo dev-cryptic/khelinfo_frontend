@@ -4,7 +4,7 @@ import axios from "axios";
 
 
 
-const CRICKET_API_URL=import.meta.env.VITE_CRICKET_API_URL
+const CRICKET_API_URL = import.meta.env.VITE_CRICKET_API_URL
 // Spinner Component
 const Spinner = () => (
   <div className="flex justify-center items-center h-screen">
@@ -348,8 +348,10 @@ export default function MatchDetails() {
         </Card>
 
         <div className="flex gap-2">
+          {/* <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-[#2354a8] text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("matchinfo")}>Live</button> */}
           <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "scorecard" ? "bg-[#2354a8] text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("scorecard")}>Scorecard</button>
           <button className={`px-4 py-2 rounded-md font-semibold ${activeTab === "matchinfo" ? "bg-[#2354a8] text-white" : "bg-gray-200 text-gray-600"}`} onClick={() => setActiveTab("matchinfo")}>Match Info</button>
+
         </div>
 
         {activeTab === "scorecard" && (
@@ -364,10 +366,13 @@ export default function MatchDetails() {
 
             <Card>
               <div className="p-4 border-b border-gray-200 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
-                <div className="flex items-center gap-3 self-start sm:self-center">
+
+                {/* MODIFIED: Removed 'self-start' to allow centering on mobile */}
+                <div className="flex items-center gap-3 self-center">
                   <img src={getTeamLogo(activeInningData.battingTeam)} alt="" className="w-10 h-10 object-cover rounded-full" />
                   <h2 className="text-xl font-bold text-gray-800">{activeInningData.title}</h2>
                 </div>
+
                 <div className="text-center sm:text-right">
                   <p className="text-2xl font-bold text-gray-800">
                     {totalRuns}/{totalWickets}{' '}
@@ -375,6 +380,7 @@ export default function MatchDetails() {
                   </p>
                   {renderScoreSummary()}
                 </div>
+
               </div>
               <BattingTable data={battingData} getPlayer={getPlayer} getDismissalInfo={getDismissalInfo} />
             </Card>
