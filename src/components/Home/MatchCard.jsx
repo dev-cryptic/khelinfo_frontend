@@ -270,7 +270,6 @@ const MatchCard = ({
     let displayCenter = "";
     let matchHasConcluded = false;
 
-    // ** FIXED: Declare display scores in the parent scope **
     let displayScoreA = teamAScore;
     let displayScoreB = teamBScore;
 
@@ -318,7 +317,7 @@ const MatchCard = ({
         }
 
     } else {
-        // T20/ODI Logic
+        // ** REFINED T20/ODI LOGIC **
         const maxOvers = type?.toUpperCase().includes("T20") ? 20 : 50;
         const parseScore = (scoreStr) => {
             if (!scoreStr) return { runs: 0, wickets: 0, overs: 0 };
@@ -347,7 +346,6 @@ const MatchCard = ({
         const secondInningsTeam = isTeamABattingFirst ? teamB : teamA;
         const secondInningsScoreObj = isTeamABattingFirst ? scoreB_Obj : scoreA_Obj;
 
-        // Determine if "Yet to bat" should be shown by modifying the existing variables
         const firstInningsComplete = firstInningsScoreObj.wickets >= 10 || firstInningsScoreObj.overs >= maxOvers;
         const secondInningsNotStarted = secondInningsScoreObj.runs === 0 && secondInningsScoreObj.overs === 0 && secondInningsScoreObj.wickets === 0;
 
@@ -359,41 +357,49 @@ const MatchCard = ({
             }
         }
         
+        // Centralized function to determine the winner
+        const getMatchResult = () => {
+            const score1 = firstInningsScoreObj.runs;
+            const score2 = secondInningsScoreObj.runs;
+        
+            if (score2 > score1) return `${secondInningsTeam} won the match`;
+            if (score1 > score2) return `${firstInningsTeam} won the match`;
+            
+            // If scores are equal, check Super Over for concluded matches
+            const teamASoRuns = getSuperOverRuns(teamAScore);
+            const teamBSoRuns = getSuperOverRuns(teamBScore);
+            if (teamASoRuns > teamBSoRuns) return `${teamA} won the Super Over`;
+            if (teamBSoRuns > teamASoRuns) return `${teamB} won the Super Over`;
+            
+            return 'Match Tied';
+        };
+
         if (isPotentiallyLive) {
             if (innings === 1) {
                 displayCenter = `${firstInningsTeam} is batting`;
             } else if (innings === 2) {
-                const runsNeeded = Math.max(firstInningsScoreObj.runs - secondInningsScoreObj.runs + 1, 0);
                 const ballsBowled = Math.floor(secondInningsScoreObj.overs) * 6 + Math.round((secondInningsScoreObj.overs % 1) * 10);
                 const ballsRemaining = Math.max((maxOvers * 6) - ballsBowled, 0);
 
-                if (secondInningsScoreObj.runs > firstInningsScoreObj.runs) {
-                    displayCenter = `${secondInningsTeam} won the match`;
+                const secondTeamHasWon = secondInningsScoreObj.runs > firstInningsScoreObj.runs;
+                const secondInningsIsOver = secondInningsScoreObj.wickets >= 10 || ballsRemaining <= 0;
+
+                if (secondTeamHasWon || secondInningsIsOver) {
+                    displayCenter = getMatchResult();
                     matchHasConcluded = true;
-                } else if (secondInningsScoreObj.wickets >= 10 || ballsRemaining <= 0) {
-                    matchHasConcluded = true;
-                    displayCenter = (firstInningsScoreObj.runs > secondInningsScoreObj.runs) ? `${firstInningsTeam} won the match` : 'Match Tied';
                 } else if (displayScoreA === "Yet to bat" || displayScoreB === "Yet to bat") {
-                     displayCenter = `${secondInningsTeam} needs ${firstInningsScoreObj.runs + 1} to win`;
+                    displayCenter = `${secondInningsTeam} needs ${firstInningsScoreObj.runs + 1} to win`;
                 } else {
+                    const runsNeeded = firstInningsScoreObj.runs - secondInningsScoreObj.runs + 1;
                     displayCenter = `${secondInningsTeam} needs ${runsNeeded} from ${ballsRemaining} balls`;
                 }
             } else {
                 displayCenter = status;
             }
         } else {
+            // Match is not live, determine final result
             matchHasConcluded = true;
-            if (firstInningsScoreObj.runs > secondInningsScoreObj.runs) {
-                displayCenter = `${firstInningsTeam} won the match`;
-            } else if (secondInningsScoreObj.runs > firstInningsScoreObj.runs) {
-                displayCenter = `${secondInningsTeam} won the match`;
-            } else {
-                const teamASoRuns = getSuperOverRuns(teamAScore);
-                const teamBSoRuns = getSuperOverRuns(teamBScore);
-                if (teamASoRuns > teamBSoRuns) displayCenter = `${teamA} won the Super Over`;
-                else if (teamBSoRuns > teamASoRuns) displayCenter = `${teamB} won the Super Over`;
-                else displayCenter = 'Match Tied';
-            }
+            displayCenter = getMatchResult();
         }
     }
 
