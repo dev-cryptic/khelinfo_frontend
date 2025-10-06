@@ -647,7 +647,7 @@ function Home() {
 
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('https://newsdata.io/api/1/latest?apikey=pub_4a96d59e8095466790c548561220f0be&q=sports');
+                const response = await axios.get('https://newsdata.io/api/1/latest?apikey=pub_4a96d59e8095466790c548561220f0be&q=sports&language=en');
 
                 // CORRECT: Check for the 'results' array from the newsdata.io API
                 if (response.data.results && response.data.results.length > 0) {
