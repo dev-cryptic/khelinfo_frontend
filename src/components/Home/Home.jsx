@@ -454,7 +454,7 @@ function Home() {
     const [visibleBlogs, setVisibleBlogs] = useState(8);
     const navigate = useNavigate();
     const { t } = useTranslation();
-    
+
     // Loading states for each section
     const [isCricketLoading, setIsCricketLoading] = useState(true);
     const [isFootballLoading, setIsFootballLoading] = useState(true);
@@ -537,7 +537,7 @@ function Home() {
                             const secondScore = (match.type === 'Test')
                                 ? `${secondEntry.score}-${secondEntry.wickets}`
                                 : `${secondEntry.score}-${secondEntry.wickets}`;
-                            
+
                             scoreString += ` & ${secondScore}`;
                         }
                         return scoreString;
@@ -638,25 +638,27 @@ function Home() {
         const interval = setInterval(fetchFootball, 10000);
         return () => clearInterval(interval);
     }, [teams, footballLeagues]);
-    
+
     useEffect(() => {
         const generateMockBlogs = () => [
             { title: "Real Madrid Stuns Barcelona in El Clásico Thriller", description: "A last-minute goal from Vinícius Jr. seals a dramatic 3-2 victory for Real Madrid...", image: "https://.../.jpg", url: "..." },
             { title: "India Dominates Australia in Champions Trophy Final", description: "Virat Kohli's masterful century leads India to a comprehensive victory...", image: "https://.../.jpg", url: "..." },
         ];
-        
+
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('https://gnews.io/api/v4/top-headlines?category=sports&lang=en&country=us&max=10&apikey=e37b8e36dc1a4fef4cf8f6559ec3718f');
-                if (response.data.articles && response.data.articles.length > 0) {
-            const blogData = response.data.articles.map(article => ({
-                // Correctly map the keys from the article object
-                title: article.title,
-                description: article.description || 'Full description is unavailable.',
-                image: article.image || '', // The key is 'image'
-                url: article.url,
-            }));
-            setBlogs(blogData);
+                const response = await axios.get('https://newsdata.io/api/1/latest?apikey=pub_4a96d59e8095466790c548561220f0be&q=sports');
+
+                // CORRECT: Check for the 'results' array from the newsdata.io API
+                if (response.data.results && response.data.results.length > 0) {
+                    const blogData = response.data.results.map(article => ({
+                        // CORRECT: Map the actual keys from the API response
+                        title: article.title,
+                        description: article.description || 'Full description is unavailable.',
+                        image: article.image_url || 'https://via.placeholder.com/150', // Key is 'image_url'
+                        url: article.link, // Key is 'link'
+                    }));
+                    setBlogs(blogData);
                 } else {
                     setBlogs(generateMockBlogs());
                 }
@@ -667,11 +669,12 @@ function Home() {
                 setIsBlogsLoading(false);
             }
         };
+
         fetchBlogs();
-    }, []);
+    }, []); // Empty dependency array ensures this runs only once
 
 
-    
+
 
     const horizontalScrollContainer = 'flex gap-4 overflow-x-auto pb-4 px-1 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]';
 
