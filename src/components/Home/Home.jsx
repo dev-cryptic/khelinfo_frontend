@@ -647,15 +647,16 @@ function Home() {
         
         const fetchBlogs = async () => {
             try {
-                const response = await axios.get('https://api.webz.io/newsApiLite?token=33bef10f-7f07-432b-a694-320d8b17ba67&q=sports');
-                if (response.data.posts && response.data.posts.length > 0) {
-                    const blogData = response.data.posts.map(post => ({
-                        title: post.title,
-                        description: post.text || 'Full text is unavailable.',
-                        image: post.thread?.main_image || '',
-                        url: post.url,
-                    }));
-                    setBlogs(blogData);
+                const response = await axios.get('https://gnews.io/api/v4/top-headlines?category=sports&lang=en&country=us&max=10&apikey=e37b8e36dc1a4fef4cf8f6559ec3718f');
+                if (response.data.articles && response.data.articles.length > 0) {
+            const blogData = response.data.articles.map(article => ({
+                // Correctly map the keys from the article object
+                title: article.title,
+                description: article.description || 'Full description is unavailable.',
+                image: article.image || '', // The key is 'image'
+                url: article.url,
+            }));
+            setBlogs(blogData);
                 } else {
                     setBlogs(generateMockBlogs());
                 }
@@ -668,6 +669,9 @@ function Home() {
         };
         fetchBlogs();
     }, []);
+
+
+    
 
     const horizontalScrollContainer = 'flex gap-4 overflow-x-auto pb-4 px-1 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]';
 
